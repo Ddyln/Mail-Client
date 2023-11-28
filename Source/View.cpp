@@ -94,6 +94,37 @@ void DrawBox(int w, int h, int x, int y, int color, int Time) {
 	TextColor(tmp);
 }
 
+
+void MailContent() {
+	TextColor(BLACK);
+	GotoXY(63, 0);
+	cout << "From: <sender>";
+	GotoXY(69, 1);
+	cout << "<mail sender>";
+	GotoXY(63, 2);
+	cout << "To: <receiver>";
+	GotoXY(67, 3);
+	cout << "<mail receiver>";
+	for (int i = 0; i < 57; i++) {
+		GotoXY(62 + i, 4);
+		cout << H_LINE;
+		GotoXY(62 + i, 6);
+		cout << H_LINE;
+		GotoXY(62 + i, 26);
+		cout << H_LINE;
+	}
+	GotoXY(62, 5);
+	cout << "<subject>";
+	GotoXY(62, 7);
+	cout << "...";
+
+	GotoXY(62, 27);
+	cout << "*1 attachment. Enter path to save: ";
+	DrawBox(57, 3, 62, 28, GRAY, 0);
+	GotoXY(63, 29);
+	cout << " > ";
+
+}
 void MainMenu() {
 	SetConsoleBlank();
 	int tmp = GetCurrentColor();
@@ -122,10 +153,12 @@ void MainMenu() {
 	TextColor(BLUE);
 	cout << "Inbox";
 	GotoXY(5, 10);
-	cout << "Important";
+	cout << "Project";
 	GotoXY(5, 12);
-	cout << "Spam";
+	cout << "Important";
 	GotoXY(5, 14);
+	cout << "Spam";
+	GotoXY(5, 16);
 	cout << "Work";
 
 	TextColor(YELLOW);
@@ -158,34 +191,7 @@ void MainMenu() {
 	GotoXY(23, 14);
 	cout << "<subject>";
 
-	TextColor(BLACK);
-	GotoXY(63, 0);
-	cout << "From: <sender>";
-	GotoXY(69, 1);
-	cout << "<mail sender>";
-	GotoXY(63, 2);
-	cout << "To: <receiver>";
-	GotoXY(67, 3);
-	cout << "<mail receiver>";
-	for (int i = 0; i < 57; i++) {
-		GotoXY(62 + i, 4);
-		cout << H_LINE;
-		GotoXY(62 + i, 6);
-		cout << H_LINE;
-		GotoXY(62 + i, 26);
-		cout << H_LINE;
-	}
-	GotoXY(62, 5);
-	cout << "<subject>";
-	GotoXY(62, 7);
-	cout << "...";
-
-	GotoXY(62, 27);
-	cout << "*1 attachment. Enter path to save: ";
-	DrawBox(57, 3, 62, 28, GRAY, 0);
-	GotoXY(63, 29);
-	cout << " > ";
-
+	MailContent();
 	TextColor(tmp);
 	if (_getch())
 		exit(0);
