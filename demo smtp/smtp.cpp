@@ -9,9 +9,9 @@
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <fstream>
+#include "nlohmann/json.hpp"
 #pragma comment(lib, "ws2_32.lib")  // Link với thư viện Winsock
-#define LOCAL_HOST "127.0.0.1"
-#define PORT_SMTP 2225
 using namespace std;
 
 int main() {
@@ -30,9 +30,14 @@ int main() {
         return 1;
     }
 
+    ifstream conf{"config.json"};
+    auto j = nlohmann::json::parse(conf);
+    const string LOCAL_HOST = j["server"];
+    const int PORT_SMTP = j["SMTP"];
+
     // server
     sockaddr_in server;
-    server.sin_addr.s_addr = inet_addr(LOCAL_HOST);
+    server.sin_addr.s_addr = inet_addr(LOCAL_HOST.c_str());
     server.sin_family = AF_INET;
     server.sin_port = htons(PORT_SMTP);
     connect(sock, (sockaddr*)&server, sizeof(server));

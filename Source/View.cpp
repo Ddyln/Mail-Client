@@ -1,4 +1,7 @@
-#include "data.h"
+#include "Data.h"
+#include "View.h"
+#include "Control.h"
+#include "Model.h"
 
 void FixConsoleWindow() {
 	HWND consoleWindow = GetConsoleWindow();
@@ -38,8 +41,14 @@ void HideCursor(bool ok) {
 	SetConsoleCursorInfo(consoleHandle, &info);
 }
 
-void ChangeFont(int x)
-{
+void SetConsoleSize(int w, int h) {
+	HWND console = GetConsoleWindow();
+	RECT r;
+	GetWindowRect(console, &r); //stores the console's current dimensions
+	MoveWindow(console, r.left, r.top, w, h, TRUE); // 800 width, 100 height
+}
+
+void FontSize(int x) {
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
 	cfi.nFont = 0;
@@ -51,12 +60,6 @@ void ChangeFont(int x)
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
-void SetConsoleSize(int w, int h) {
-	HWND console = GetConsoleWindow();
-	RECT r;
-	GetWindowRect(console, &r); //stores the console's current dimensions
-	MoveWindow(console, r.left, r.top, w, h, TRUE); // 800 width, 100 height
-}
 
 void DrawBox(int w, int h, int x, int y, int color, int Time) {
 	int tmp = GetCurrentColor();
@@ -99,23 +102,21 @@ void MailContent() {
 	TextColor(BLACK);
 	GotoXY(63, 0);
 	cout << "From: <sender>";
-	GotoXY(69, 1);
-	cout << "<mail sender>";
-	GotoXY(63, 2);
+	GotoXY(63, 1);
 	cout << "To: <receiver>";
-	GotoXY(67, 3);
-	cout << "<mail receiver>";
+	GotoXY(63, 2);
+	cout << "Cc: ";
 	for (int i = 0; i < 57; i++) {
-		GotoXY(62 + i, 4);
+		GotoXY(62 + i, 3);
 		cout << H_LINE;
-		GotoXY(62 + i, 6);
+		GotoXY(62 + i, 5);
 		cout << H_LINE;
 		GotoXY(62 + i, 26);
 		cout << H_LINE;
 	}
-	GotoXY(62, 5);
+	GotoXY(62, 4);
 	cout << "<subject>";
-	GotoXY(62, 7);
+	GotoXY(62, 6);
 	cout << "...";
 
 	GotoXY(62, 27);
@@ -125,7 +126,47 @@ void MailContent() {
 	cout << " > ";
 
 }
-void MainMenu() {
+
+void UnhoverButton(int pos) {
+	int tmp = GetCurrentColor();
+	if (pos == 0) {
+		DrawBox(16, 3, 2, 0, CYAN, 0);
+		GotoXY(3, 1);
+		TextColor(CYAN);
+		cout << "+ New message";
+	}
+	else {
+		string button[6] = { "Sent", "Inbox", "Project", "Important", "Spam", "Work" };
+		GotoXY(5, 6 + (pos - 1) * 2);
+		TextColor(BLUE);
+		cout << button[pos - 1];
+		GotoXY(3, 6 + (pos - 1) * 2);
+		cout << " ";
+	}
+	TextColor(tmp);
+}
+
+void HoverButton(int pos) {
+	int tmp = GetCurrentColor();
+	if (pos == 0) {
+		DrawBox(16, 3, 2, 0, RED, 0);
+		GotoXY(3, 1);
+		TextColor(RED);
+		cout << "+ New message";
+	}
+	else {
+		string button[6] = { "Sent", "Inbox", "Project", "Important", "Spam", "Work" };
+		GotoXY(5, 6 + (pos - 1) * 2);
+		TextColor(RED);
+		cout << button[pos - 1];
+		TextColor(YELLOW);
+		GotoXY(3, 6 + (pos - 1) * 2);
+		cout << L_TRIANGLE;
+	}
+	TextColor(tmp);
+}
+
+void MainMenu(CONFIG& cnf) {
 	SetConsoleBlank();
 	int tmp = GetCurrentColor();
 	TextColor(BLACK);
@@ -137,17 +178,26 @@ void MainMenu() {
 		cout << V_LINE;
 	}
 
-	DrawBox(16, 3, 2, 0, CYAN, 0);
+	DrawBox(16, 3, 2, 0, RED, 0);
 	GotoXY(3, 1);
-	TextColor(CYAN);
+	TextColor(RED);
 	cout << "+ New message";
 
-	string mail = "test123@gmail.com";
 	GotoXY(2, 4);
 	TextColor(BLUE);
-	cout << mail;
+	if (cnf.mail.size() > 20) {
+		GotoXY(0, 4);
+		for (int i = 0; i < 17; i++)
+			cout << cnf.mail[i];
+		cout << "...";
+	}
+	else {
+		GotoXY(10 - cnf.mail.size() / 2, 4);
+		cout << cnf.mail;
+	}
+
 	GotoXY(5, 6);
-	TextColor(RED);
+	TextColor(BLUE);
 	cout << "Sent";
 	GotoXY(5, 8);
 	TextColor(BLUE);
@@ -160,10 +210,24 @@ void MainMenu() {
 	cout << "Spam";
 	GotoXY(5, 16);
 	cout << "Work";
+	MailContent();
+	int pos = 0;
+	while (true) {
+		unsigned char c = toupper(_getch());
+		if (c == DOWN_ARROW || c == UP_ARROW) {
+			int newPos = pos;
+			if (c == DOWN_ARROW)
+				newPos = (pos + 1) % 7;
+			else
+				newPos = (pos - 1 + 7) % 7;
+			UnhoverButton(pos);
+			HoverButton(newPos);
+			pos = newPos;
+		}
+		else if (c == ENTER) {
 
-	TextColor(YELLOW);
-	GotoXY(3, 6);
-	cout << L_TRIANGLE;
+		}
+	}
 
 	DrawBox(37, 4, 22, 0, RED, 0);
 	GotoXY(23, 1);

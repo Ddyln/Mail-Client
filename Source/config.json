@@ -1,0 +1,9 @@
+{
+    "username": "Dang Duy Lan",
+    "mail" : "test123@ddlan.com",
+    "password" : "24223671",
+    "server" : "127.0.0.1",
+    "SMTP" : 2225,
+    "POP3" : 3335,
+    "autoload" : 10
+}

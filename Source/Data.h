@@ -1,4 +1,12 @@
 #pragma once
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+
 #include <iostream>
 #include <cctype>
 #include <Windows.h>
@@ -11,13 +19,18 @@
 #include <mmsystem.h>
 #include <windows.h>
 #include <queue>
-#include "Control.h"
-#include "View.h"
+#include <sstream>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include "nlohmann/json.hpp"
 using namespace std;
+#pragma comment(lib, "ws2_32.lib")
 
 // Console size
 #define WIDTH 121
 #define HEIGHT 31
+
+#define MaxChar 57
 
 // Color code
 #define BLACK (15 << 4)
@@ -70,3 +83,21 @@ using namespace std;
 #define BOX_W 40
 #define BOX_H 20
 #define SPACE (char)32
+#define LEFT_ARROW 75
+#define UP_ARROW 72
+#define RIGHT_ARROW 77
+#define DOWN_ARROW 80
+
+struct CONFIG {
+	string username = "", mail = "", password = "", server = "";
+	int SMTP = 0, POP3 = 0, autoload = 0;
+};
+
+struct MAIL {
+	string subject = "", from = "", to = "", cc = "";
+	vector <string> line;
+	string text = "";
+	string type = "Inbox";
+};
+
+typedef vector <MAIL> LIST;
