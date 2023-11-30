@@ -1,0 +1,9 @@
+{
+    "username": "Dang Duy Lan",
+    "mail" : "THMMT_N08@fit",
+    "password" : "12345678",
+    "server" : "127.0.0.1",
+    "SMTP" : 2225,
+    "POP3" : 3335,
+    "autoload" : 10
+}
