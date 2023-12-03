@@ -1,0 +1,15 @@
+{
+    "ID": "20231130114319878",
+    "cc": "",
+    "from": "test123@ddlan.com",
+    "line": [
+        "test",
+        "123",
+        "ok",
+        "bye"
+    ],
+    "subject": "mail 3",
+    "text": "test\n123\nok\nbye",
+    "to": "test123@ddlan.com",
+    "type": 1
+}

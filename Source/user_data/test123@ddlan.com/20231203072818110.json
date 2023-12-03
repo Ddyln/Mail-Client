@@ -1,0 +1,19 @@
+{
+    "ID": "20231203072818110",
+    "cc": "",
+    "from": "test123@ddlan.com",
+    "line": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvasjdhasjdasjdhas",
+        "jdbasdajsbd",
+        "asdajkshdjkasdbjaskdbgahjskdvbahjksdvbajhksdbv",
+        "ajksbdahjksvfhasfghasjgfiausdyuiyd7iqwuy iuyasui",
+        "asdkhuiryqwurtyqwuieguiahdas;dasdkl;'alsdasdasdaksjdakisf",
+        "ha",
+        "asdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd",
+        "makslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd"
+    ],
+    "subject": "multiline mail 2",
+    "text": "aaaaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvasjdhasjdasjdhasjdbasdajsbd\nasdajkshdjkasdbjaskdbgahjskdvbahjksdvbajhksdbv\najksbdahjksvfhasfghasjgfiausdyuiyd7iqwuy iuyasui\nasdkhuiryqwurtyqwuieguiahdas;dasdkl;'alsdasdasdaksjdakisfha\nasdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd\nmakslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd",
+    "to": "test123@ddlan.com",
+    "type": 1
+}

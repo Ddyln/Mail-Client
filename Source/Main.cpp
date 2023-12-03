@@ -1,4 +1,4 @@
-#include "Data.h"
+﻿#include "Data.h"
 #include "View.h"
 #include "Control.h"
 #include "Model.h"
@@ -8,11 +8,9 @@ int main() {
 	FixConsoleWindow();
 	FontSize(21);
 	SetConsoleSize(1200, 700); 
-	LIST mail;
-	Init(mail);
-	return 0;
 	ifstream f{ "config.json" };
 	auto tmp = nlohmann::json::parse(f);
+	f.close();
 	CONFIG cnf = {
 		tmp["username"],
 		tmp["mail"],
@@ -22,8 +20,11 @@ int main() {
 		tmp["POP3"],
 		tmp["autoload"]
 	};
+	LIST mail;
+	Init(mail, cnf);
+
 	while (true) {
-		MainMenu(cnf);
+		MainMenu(mail, cnf);
 	}
 	return 0;
 }

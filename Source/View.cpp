@@ -60,7 +60,6 @@ void FontSize(int x) {
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
-
 void DrawBox(int w, int h, int x, int y, int color, int Time) {
 	int tmp = GetCurrentColor();
 	TextColor(color);
@@ -97,15 +96,22 @@ void DrawBox(int w, int h, int x, int y, int color, int Time) {
 	TextColor(tmp);
 }
 
+void ClearBox(int w, int h, int x, int y) {
+	int tmp = GetCurrentColor();
+	TextColor(CYAN);
+	for (int i = 0; i < h; i++) {
+		GotoXY(x, y + i);
+		for (int j = 0; j < w; j++)
+			cout << ' ';
+	}
+	TextColor(tmp);
+}
 
-void MailContent() {
+void MailContent(MAIL mail, int page) {
 	TextColor(BLACK);
-	GotoXY(63, 0);
-	cout << "From: <sender>";
-	GotoXY(63, 1);
-	cout << "To: <receiver>";
-	GotoXY(63, 2);
-	cout << "Cc: ";
+	PrintTextInLine("From: " + mail.from, 56, 63, 0, BLACK);
+	PrintTextInLine("To: " + mail.to, 56, 63, 1, BLACK);
+	PrintTextInLine("Cc: " + mail.cc, 56, 63, 2, BLACK);
 	for (int i = 0; i < 57; i++) {
 		GotoXY(62 + i, 3);
 		cout << H_LINE;
@@ -114,10 +120,25 @@ void MailContent() {
 		GotoXY(62 + i, 26);
 		cout << H_LINE;
 	}
-	GotoXY(62, 4);
-	cout << "<subject>";
-	GotoXY(62, 6);
-	cout << "...";
+	for (int i = 20; i < 37; i++) {
+		GotoXY(62 + i, 24);
+		cout << H_LINE;
+	}
+	string nPage = to_string((int)ceil(1.0 * mail.line.size() / 18));
+	while (nPage.size() < 2) nPage = "0" + nPage;
+	string curPage = to_string(page + 1);
+	while (curPage.size() < 2) curPage = "0" + curPage;
+	string footer = "<" + curPage + "/" + nPage + ">";
+	GotoXY(62 + 57 / 2 - footer.size() / 2, 25);
+	cout << footer;
+	PrintTextInLine("Subject: " + mail.subject, 57, 62, 4, BLACK);
+	for (int i = 0; i < 18; i++) {
+		int curLine = page * 18 + i;
+		if (curLine >= mail.line.size())
+			break;
+		GotoXY(62, 6 + i);
+		cout << mail.line[curLine];
+	}
 
 	GotoXY(62, 27);
 	cout << "*1 attachment. Enter path to save: ";
@@ -128,6 +149,7 @@ void MailContent() {
 }
 
 void UnhoverButton(int pos) {
+	pos = (pos + 1) % 7;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
 		DrawBox(16, 3, 2, 0, CYAN, 0);
@@ -147,6 +169,7 @@ void UnhoverButton(int pos) {
 }
 
 void HoverButton(int pos) {
+	pos = (pos + 1) % 7;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
 		DrawBox(16, 3, 2, 0, RED, 0);
@@ -166,7 +189,30 @@ void HoverButton(int pos) {
 	TextColor(tmp);
 }
 
-void MainMenu(CONFIG& cnf) {
+void PrintTextInLine(string text, int w, int x, int y, int color) {
+	GotoXY(x, y);
+	int tmp = GetCurrentColor();
+	TextColor(color);
+	if (text.size() <= w)
+		cout << text;
+	else
+		cout << text.substr(0, w - 3) << "...";
+	TextColor(tmp);
+}
+
+void HoverMailBox(MAIL mail, int line) {
+	DrawBox(37, 4, 22, line * 4, RED, 0);
+	PrintTextInLine("From: " + mail.from, 35, 23, 1 + line * 4, RED);
+	PrintTextInLine("Subject: " + mail.subject, 35, 23, 2 + line * 4, RED);
+}
+
+void UnhoverMailBox(MAIL mail, int line) {
+	DrawBox(37, 4, 22, line * 4, CYAN, 0);
+	PrintTextInLine("From: " + mail.from, 35, 23, 1 + line * 4, CYAN);
+	PrintTextInLine("Subject: " + mail.subject, 35, 23, 2 + line * 4, CYAN);
+}
+
+void MainMenu(LIST& mail, CONFIG& cnf) {
 	SetConsoleBlank();
 	int tmp = GetCurrentColor();
 	TextColor(BLACK);
@@ -210,8 +256,8 @@ void MainMenu(CONFIG& cnf) {
 	cout << "Spam";
 	GotoXY(5, 16);
 	cout << "Work";
-	MailContent();
-	int pos = 0;
+	int pos = 6;
+	
 	while (true) {
 		unsigned char c = toupper(_getch());
 		if (c == DOWN_ARROW || c == UP_ARROW) {
@@ -225,38 +271,92 @@ void MainMenu(CONFIG& cnf) {
 			pos = newPos;
 		}
 		else if (c == ENTER) {
+			if (pos == 6) {
 
+			}
+			else {
+				LIST tmp;
+				for (int i = 0; i < mail.size(); i++) {
+					if (mail[i].type == pos)
+						tmp.push_back(mail[i]);
+				}
+				int curPage = 0, curLine = 0;
+				int nPage = (int)ceil(1.0 * tmp.size() / 7), nLine = min(7, tmp.size());
+				for (int i = 1; i < nLine; i++)
+					UnhoverMailBox(tmp[i], i);
+				if (nLine)
+					HoverMailBox(tmp[0], 0);
+
+				while (true) {
+					int nCurPage = curPage, nCurLine = curLine;
+					string s = to_string(curPage + 1);
+					while (s.size() < 2) s = "0" + s;
+					string footer = "<" + s;
+					s = to_string(max(1, nPage));
+					while (s.size() < 2) s = "0" + s;
+					footer += "/" + s + ">";
+					GotoXY(20 + 17, HEIGHT - 2);
+					cout << footer;
+					GotoXY(20 + 15, HEIGHT - 3);
+					for (int i = 0; i < 11; i++)
+						cout << H_LINE;
+					unsigned char c = toupper(_getch());
+					if (c == ESC) {
+						if (tmp.size())
+							UnhoverMailBox(tmp[nCurPage * 7 + curLine], curLine);
+						break;
+					}
+					if (tmp.size() == 0)
+						continue;
+					else if (c == ENTER) {
+						int page = 0, nPage = (int)ceil(1.0 * tmp[curPage * 7 + curLine].line.size() / 18);
+						MailContent(mail[curPage * 7 + curLine], page);
+						while (true) {
+							unsigned char c = toupper(_getch());
+							if (c == ESC) {
+								break;
+							}
+							else if (c == RIGHT_ARROW)
+								page = (page + 1) % nPage;
+							else if (c == LEFT_ARROW)
+								page = (page - 1 + nPage) % nPage;
+							ClearBox(57, 18, 62, 6);
+							MailContent(tmp[curPage * 7 + curLine], page);
+						}
+						ClearBox(58, HEIGHT, 61, 0);
+					}
+					else if (c == RIGHT_ARROW || c == LEFT_ARROW) {
+						if (c == RIGHT_ARROW) {
+							nCurPage = (curPage + 1) % nPage, nCurLine = 0;
+						}
+						else if (c == LEFT_ARROW) {
+							nCurPage = (curPage - 1 + nPage) % nPage, nCurLine = 0;
+						}
+						ClearBox(39, HEIGHT, 21, 0);
+						for (int i = nCurPage * 7 + 1; i < min((nCurPage + 1) * 7, tmp.size()); i++)
+							UnhoverMailBox(tmp[i], i - nCurPage * 7);
+						HoverMailBox(tmp[nCurPage * 7], 0);
+						curPage = nCurPage;
+						curLine = nCurLine;
+					}
+					else {
+						if (curPage != nPage - 1)
+							nLine = 7;
+						else
+							nLine = tmp.size() % 7;
+						if (c == DOWN_ARROW)
+							nCurLine = (curLine + 1) % nLine;
+						else if (c == UP_ARROW)
+							nCurLine = (curLine - 1 + nLine) % nLine;
+						UnhoverMailBox(tmp[nCurPage * 7 + curLine], curLine);
+						HoverMailBox(tmp[nCurPage * 7 + nCurLine], nCurLine);
+					}
+					curPage = nCurPage;
+					curLine = nCurLine;
+				}
+				ClearBox(39, HEIGHT, 21, 0);
+			}
 		}
 	}
 
-	DrawBox(37, 4, 22, 0, RED, 0);
-	GotoXY(23, 1);
-	TextColor(RED);
-	cout << "<sender>";
-	GotoXY(23, 2);
-	cout << "<subject>";
-
-	DrawBox(37, 4, 22, 4, CYAN, 0);
-	GotoXY(23, 5);
-	TextColor(CYAN);
-	cout << "<sender>";
-	GotoXY(23, 6);
-	cout << "<subject>";
-	DrawBox(37, 4, 22, 8, CYAN, 0);
-	GotoXY(23, 9);
-	TextColor(CYAN);
-	cout << "<sender>";
-	GotoXY(23, 10);
-	cout << "<subject>";
-	DrawBox(37, 4, 22, 12, CYAN, 0);
-	GotoXY(23, 13);
-	TextColor(CYAN);
-	cout << "<sender>";
-	GotoXY(23, 14);
-	cout << "<subject>";
-
-	MailContent();
-	TextColor(tmp);
-	if (_getch())
-		exit(0);
 }

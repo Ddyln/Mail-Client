@@ -22,6 +22,7 @@
 #include <sstream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <filesystem>
 #include "nlohmann/json.hpp"
 using namespace std;
 #pragma comment(lib, "ws2_32.lib")
@@ -29,7 +30,7 @@ using namespace std;
 // Console size
 #define WIDTH 121
 #define HEIGHT 31
-
+#define buflen 8192
 #define MaxChar 57
 
 // Color code
@@ -88,16 +89,25 @@ using namespace std;
 #define RIGHT_ARROW 77
 #define DOWN_ARROW 80
 
+enum FILTER{
+	SENT,
+	INBOX,
+	PROJECT,
+	IMPORTANT,
+	SPAM,
+	WORK
+};
+
 struct CONFIG {
 	string username = "", mail = "", password = "", server = "";
 	int SMTP = 0, POP3 = 0, autoload = 0;
 };
 
 struct MAIL {
-	string subject = "", from = "", to = "", cc = "";
+	string subject = "", from = "", to = "", cc = "", ID = "";
 	vector <string> line;
 	string text = "";
-	string type = "Inbox";
+	FILTER type = INBOX;
 };
 
 typedef vector <MAIL> LIST;

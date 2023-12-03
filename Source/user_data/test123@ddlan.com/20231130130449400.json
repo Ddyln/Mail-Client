@@ -1,0 +1,14 @@
+{
+    "ID": "20231130130449400",
+    "cc": "THMMT_N08@fit.hcmus.edu.vn",
+    "from": "test123@ddlan.com",
+    "line": [
+        "ok",
+        "helo",
+        "bye"
+    ],
+    "subject": "mail 3",
+    "text": "ok\nhelo\nbye",
+    "to": "test123@ddlan.com",
+    "type": 1
+}
