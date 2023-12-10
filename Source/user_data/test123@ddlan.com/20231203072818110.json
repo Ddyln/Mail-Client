@@ -1,5 +1,7 @@
 {
     "ID": "20231203072818110",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "test123@ddlan.com",
     "line": [
@@ -12,6 +14,7 @@
         "asdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd",
         "makslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd"
     ],
+    "read": false,
     "subject": "multiline mail 2",
     "text": "aaaaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvasjdhasjdasjdhasjdbasdajsbd\nasdajkshdjkasdbjaskdbgahjskdvbahjksdvbajhksdbv\najksbdahjksvfhasfghasjgfiausdyuiyd7iqwuy iuyasui\nasdkhuiryqwurtyqwuieguiahdas;dasdkl;'alsdasdasdaksjdakisfha\nasdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd\nmakslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd",
     "to": "test123@ddlan.com",

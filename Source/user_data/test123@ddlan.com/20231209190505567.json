@@ -1,0 +1,18 @@
+{
+    "ID": "20231209190505567",
+    "att": [
+        "Content-Type: text/plain; charset=UTF-8; name=\"test.txt\"Content-Disposition: attachment; filename=\"test.txt\"Content-Transfer-Encoding: base64bm90aGluZyBoZXJl",
+        "Content-Type: text/plain; charset=UTF-8; name=\"test - Copy.txt\"Content-Disposition: attachment; filename=\"test - Copy.txt\"Content-Transfer-Encoding: base64bm90aGluZyBoZXJl--------------OKIXMxsox0yQHMH3fEfrxS50--"
+    ],
+    "boundary": "--------------OKIXMxsox0yQHMH3fEfrxS50",
+    "cc": "",
+    "from": "Dang Duy Lan <test123@ddlan.com>",
+    "line": [
+        "ok ok ok"
+    ],
+    "read": false,
+    "subject": "sss",
+    "text": "This is a multi-part message in MIME format.\n--------------OKIXMxsox0yQHMH3fEfrxS50\nContent-Type: text/plain; charset=UTF-8; format=flowed\nContent-Transfer-Encoding: 7bit\n\nok ok ok\n\n--------------OKIXMxsox0yQHMH3fEfrxS50\nContent-Type: text/plain; charset=UTF-8; name=\"test.txt\"\nContent-Disposition: attachment; filename=\"test.txt\"\nContent-Transfer-Encoding: base64\n\nbm90aGluZyBoZXJl\n--------------OKIXMxsox0yQHMH3fEfrxS50\nContent-Type: text/plain; charset=UTF-8; name=\"test - Copy.txt\"\nContent-Disposition: attachment; filename=\"test - Copy.txt\"\nContent-Transfer-Encoding: base64\n\nbm90aGluZyBoZXJl\n\n--------------OKIXMxsox0yQHMH3fEfrxS50--",
+    "to": "test123@ddlan.com",
+    "type": 1
+}

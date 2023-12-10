@@ -1,5 +1,7 @@
 {
     "ID": "20231130005232778",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "THMMT_N08@fit.hcmus.edu.vn",
     "line": [
@@ -7,6 +9,7 @@
         "hi",
         "bye"
     ],
+    "read": false,
     "subject": "test SMTP",
     "text": "hello\nhi\nbye",
     "to": "test123@ddlan.com",

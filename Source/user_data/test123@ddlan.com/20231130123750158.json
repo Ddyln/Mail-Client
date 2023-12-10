@@ -1,5 +1,7 @@
 {
     "ID": "20231130123750158",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "test123@ddlan.com",
     "line": [
@@ -10,6 +12,7 @@
         "",
         "/"
     ],
+    "read": true,
     "subject": "mail 3",
     "text": "aaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddeeeeeeeeeeeeeeeeeeeeeeeeee\nbbye\n\n/",
     "to": "test123@ddlan.com",

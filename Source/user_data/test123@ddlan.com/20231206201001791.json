@@ -1,16 +1,16 @@
 {
-    "ID": "20231202223804728",
+    "ID": "20231206201001791",
     "att": [],
     "boundary": "",
     "cc": "",
     "from": "Dang Duy Lan <test123@ddlan.com>",
     "line": [
-        "sdad",
+        "okok",
         ""
     ],
-    "read": false,
-    "subject": "asd",
-    "text": "sdad\n",
+    "read": true,
+    "subject": "only text",
+    "text": "okok\n",
     "to": "test123@ddlan.com",
     "type": 1
 }

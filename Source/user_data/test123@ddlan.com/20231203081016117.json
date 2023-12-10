@@ -1,5 +1,7 @@
 {
     "ID": "20231203081016117",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "test123@ddlan.com",
     "line": [
@@ -50,6 +52,7 @@
         "asd",
         "a"
     ],
+    "read": false,
     "subject": "multiline mail 3",
     "text": "aaaaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvasjdhasjdasjdhasjdbasdajsbd\nasdajkshdjkasdbjaskdbgahjskdvbahjksdvbajhksdbv\najksbdahjksvfhasfghasjgfiausdyuiyd7iqwuy iuyasui\nasdkhuiryqwurtyqwuieguiahdas;dasdkl;'alsdasdasdaksjdakisfha\nasdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd\nmakslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd\na\nb\nav\nas\nas\nasd\nad\nasd\nasd\nd\nad\nad\nasd\nasd\na\naaaaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvasjdhasjdasjdhasjdbasdajsbd\nasdajkshdjkasdbjaskdbgahjskdvbahjksdvbajhksdbv\najksbdahjksvfhasfghasjgfiausdyuiyd7iqwuy iuyasui\nasdkhuiryqwurtyqwuieguiahdas;dasdkl;'alsdasdasdaksjdakisfha\nasdkasjkdbgasjkdbasjkdbasndkbandbasndbasdasd\nmakslfnhajksfhajskfbjaskfbajskdbajksdbjaksdbjaksbdjaksd\na\nb\nav\nas\nas\nasd\nad\nasd\nasd\nd\nad\nad\nasd\nasd\na",
     "to": "test123@ddlan.com",

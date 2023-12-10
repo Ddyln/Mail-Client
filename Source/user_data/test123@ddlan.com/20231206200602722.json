@@ -1,0 +1,17 @@
+{
+    "ID": "20231206200602722",
+    "att": [
+        "Content-Type: text/plain; charset=UTF-8; name=\"test.txt\"Content-Disposition: attachment; filename=\"test.txt\"Content-Transfer-Encoding: base64ZmlsZSBpbiBoZXJl--------------vAUjthkrNskjxCizj2YIZSmn--"
+    ],
+    "boundary": "--------------vAUjthkrNskjxCizj2YIZSmn",
+    "cc": "",
+    "from": "Dang Duy Lan <test123@ddlan.com>",
+    "line": [
+        "kk"
+    ],
+    "read": false,
+    "subject": "file 2",
+    "text": "This is a multi-part message in MIME format.\n--------------vAUjthkrNskjxCizj2YIZSmn\nContent-Type: text/plain; charset=UTF-8; format=flowed\nContent-Transfer-Encoding: 7bit\n\nkk\n\n--------------vAUjthkrNskjxCizj2YIZSmn\nContent-Type: text/plain; charset=UTF-8; name=\"test.txt\"\nContent-Disposition: attachment; filename=\"test.txt\"\nContent-Transfer-Encoding: base64\n\nZmlsZSBpbiBoZXJl\n\n--------------vAUjthkrNskjxCizj2YIZSmn--",
+    "to": "test123@ddlan.com",
+    "type": 1
+}

@@ -2,6 +2,7 @@
 #include "View.h"
 #include "Control.h"
 #include "Model.h"
+char recvbuf[buflen] = { 0 };
 
 int Recv(SOCKET& sock, char recvbuf[]) {
     memset(recvbuf, 0, sizeof recvbuf);
@@ -63,7 +64,15 @@ MAIL MsgParser(char s[]) {
             res.to = (string(s)).substr(FindNot(s, ' ', pos + 1), strlen(s));
         else if (type == "Cc")
             res.cc = (string(s)).substr(FindNot(s, ' ', pos + 1), strlen(s));
+        else if (type == "Content-Type") {
+            if ((string(s)).substr(pos + 1, Find(s, ';', pos) - (pos + 1)) == " multipart/mixed") {
+                pos = Find(s, 'b', pos);
+                pos = Find(s, '"', pos);
+                res.boundary = "--" + (string(s)).substr(pos + 1, Find(s, '"', pos + 1) - (pos + 1));
+            }
+        }
     }
+
     while (true) {
         memset(s, 0, buflen);
         inp.getline(s, buflen, 13);
@@ -83,6 +92,28 @@ MAIL MsgParser(char s[]) {
         }
         res.line.back().push_back(res.text[i]);
     }
+    if (res.line.size() > 1 && res.line[0] == MIME_start) {
+        int i = 0;
+        for (int t = 0; t < 5; t++)
+            res.line.erase(res.line.begin() + i);
+        while (i < res.line.size() && res.line[i] != res.boundary) i++;
+        i--;
+        for (int t = 0; t < 2; t++)
+            res.line.erase(res.line.begin() + i);
+
+        while (res.line.size()) {
+            res.att.push_back("");
+            while (i < res.line.size() && res.line[i] != res.boundary) {
+                for (int j = 0; j < res.line[i].size(); j++)
+                    res.att.back() += res.line[i][j];
+                res.line.erase(res.line.begin() + i);
+            }
+            while (i < res.line.size() && res.line[i] != res.boundary) i++;
+            if (i >= res.line.size())
+                break;
+            res.line.erase(res.line.begin() + i);
+        }
+    }
     return res;
 }
 
@@ -96,7 +127,7 @@ MAIL RetrMail(SOCKET sock, int i) {
     string command = "RETR ";
     command += to_string(i);
     command += "\n";
-    char recvbuf[buflen] = { 0 };
+    memset(recvbuf, 0, sizeof recvbuf);
     Send(sock, command);
     Recv(sock, recvbuf);
     return MsgParser(recvbuf);
@@ -132,7 +163,7 @@ int Init(LIST& mail, CONFIG& cnf) {
     server.sin_port = htons(conf_POP3);
     connect(sock, (sockaddr*)&server, sizeof(server));
 
-    char recvbuf[buflen] = { 0 };
+    memset(recvbuf, 0, sizeof recvbuf);
     Recv(sock, recvbuf);
 
     string command = "USER ";
@@ -159,9 +190,7 @@ int Init(LIST& mail, CONFIG& cnf) {
     while (isdigit(recvbuf[i])) {
         n = n * 10 + (recvbuf[i++] - '0');
     }
-
-    for (int i = 1; i <= n; i++)   
-        mail.push_back(RetrMail(sock, i));
+    mail.resize(n);
 
     memset(recvbuf, 0, buflen);
     command = "UIDL\n";
@@ -174,11 +203,6 @@ int Init(LIST& mail, CONFIG& cnf) {
         mail[i].ID = (string(recvbuf)).substr(pos + 1, (tmp = Find(recvbuf, '.', pos)) - pos - 1);
         pos = tmp;
     }
-    command = "QUIT\n";
-    Send(sock, command);
-    Recv(sock, recvbuf);
-    closesocket(sock);
-    WSACleanup();
 
     CreateUser(cnf.mail);
     if (FileSize("user_data/" + cnf.mail + "/mail_id.json") <= 0) {
@@ -186,19 +210,21 @@ int Init(LIST& mail, CONFIG& cnf) {
         f << "{}";
         f.close();
     }
-    ifstream f{ "user_data/" + cnf.mail + "/mail_id.json" };
+    fstream f{ "user_data/" + cnf.mail + "/mail_id.json" };
     auto data = nlohmann::json::parse(f);
     f.close();
 
     for (int i = 0; i < n; i++) {
-        auto it = data.find(mail[i].ID);
+        string ID = mail[i].ID;
+        auto it = data.find(ID);
         if (it == data.end()) {
-            data[mail[i].ID] = 1;
+            mail[i] = (RetrMail(sock, i + 1));
+            mail[i].ID = ID;
             ofstream file("user_data/" + cnf.mail + "/" + mail[i].ID + ".json");
             file << "{}";
             file.close();
 
-            ifstream f{"user_data/" + cnf.mail + "/" + mail[i].ID + ".json"};
+            fstream f{ "user_data/" + cnf.mail + "/" + mail[i].ID + ".json" };
             auto data = nlohmann::json::parse(f);
             f.close();
 
@@ -210,14 +236,96 @@ int Init(LIST& mail, CONFIG& cnf) {
             data["line"] = mail[i].line;
             data["text"] = mail[i].text;
             data["type"] = mail[i].type;
+            data["boundary"] = mail[i].boundary;
+            data["att"] = mail[i].att;
+            data["read"] = mail[i].read;
 
             file.open("user_data/" + cnf.mail + "/" + mail[i].ID + ".json");
             file << setw(4) << data;
             file.close();
         }
+        else {
+            fstream f{ "user_data/" + cnf.mail + "/" + mail[i].ID + ".json" };
+            auto data = nlohmann::json::parse(f);
+            f.close();
+            mail[i].from = data["from"];
+            mail[i].to = data["to"];
+            mail[i].subject = data["subject"];
+            mail[i].cc = data["cc"];
+            mail[i].ID = data["ID"];
+            mail[i].line = data["line"];
+            mail[i].type = data["type"];
+            mail[i].boundary = data["boundary"];
+            mail[i].att = data["att"];
+            mail[i].read = data["read"];
+        }
+        data[mail[i].ID] = 1;
     }
+
+    command = "QUIT\n";
+    Send(sock, command);
+    Recv(sock, recvbuf);
+    closesocket(sock);
+    WSACleanup();
+
     ofstream file("user_data/" + cnf.mail + "/mail_id.json");
     file << setw(4) << data;
     file.close();
+
     return 0;
+}
+
+bool EnterPath(string& s, int len) {
+    char c;
+    HideCursor(0);
+    while (true) {
+        c = _getch();
+        if (c == ENTER) {
+            break;
+        }
+        else if (c == ESC) {
+            s = "";
+            HideCursor(1);
+            return 0;
+        }
+        else if (c == BACK_SPACE) {
+            if (s.size()) {
+                int x = WhereX(), y = WhereY();
+                GotoXY(x - 1, y);
+                cout << ' ';
+                GotoXY(x - 1, y);
+                s.pop_back();
+            }
+        }
+        else if (s.size() < len && c < 128) {
+            cout << c;
+            s += c;
+        }
+    }
+    HideCursor(1);
+    return 1;
+}
+
+//lọc = người gửi
+LIST FilterMailBySender(const LIST& mailList, const string& sender) {
+    LIST filteredList;
+    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
+        [sender](const MAIL& mail) { return mail.from == sender; });
+    return filteredList;
+}
+
+//lọc = subject
+LIST FilterMailBySubject(const LIST& mailList, const string& subject) {
+    LIST filteredList;
+    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
+        [subject](const MAIL& mail) { return mail.subject == subject; });
+    return filteredList;
+}
+
+//lọc = nội dung
+LIST FilterMailByContent(const LIST& mailList, const string& content) {
+    LIST filteredList;
+    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
+        [content](const MAIL& mail) { return mail.text.find(content) != string::npos; });
+    return filteredList;
 }

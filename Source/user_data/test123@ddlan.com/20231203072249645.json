@@ -1,5 +1,7 @@
 {
     "ID": "20231203072249645",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "test123@ddlan.com",
     "line": [
@@ -37,6 +39,7 @@
         "9",
         "0"
     ],
+    "read": false,
     "subject": "multiline mail",
     "text": "a\nb\nc\nd\ne\nf\nh\ng\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nx\ny\nz\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0",
     "to": "test123@ddlan.com",

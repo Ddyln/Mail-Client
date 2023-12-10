@@ -1,11 +1,14 @@
 {
     "ID": "20231202062353296",
+    "att": [],
+    "boundary": "",
     "cc": "",
     "from": "Dang Duy Lan <test123@ddlan.com>",
     "line": [
         "aaasa",
         ""
     ],
+    "read": true,
     "subject": "quen tat bao thuc",
     "text": "aaasa\n",
     "to": "test123@ddlan.com",

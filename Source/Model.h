@@ -10,3 +10,7 @@ MAIL MsgParser(char s[]);
 MAIL RetrMail(SOCKET sock, int i);
 void CreateUser(string user);
 int FileSize(string path);
+bool EnterPath(string& s, int len);
+LIST FilterMailBySender(const LIST& mailList, const string& sender);
+LIST FilterMailBySubject(const LIST& mailList, const string& subject);
+LIST FilterMailByContent(const LIST& mailList, const string& content);

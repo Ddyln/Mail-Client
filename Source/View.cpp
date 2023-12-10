@@ -124,7 +124,7 @@ void MailContent(MAIL mail, int page) {
 		GotoXY(62 + i, 24);
 		cout << H_LINE;
 	}
-	string nPage = to_string((int)ceil(1.0 * mail.line.size() / 18));
+	string nPage = to_string(max(1, (int)ceil(1.0 * mail.line.size() / 18)));
 	while (nPage.size() < 2) nPage = "0" + nPage;
 	string curPage = to_string(page + 1);
 	while (curPage.size() < 2) curPage = "0" + curPage;
@@ -141,7 +141,7 @@ void MailContent(MAIL mail, int page) {
 	}
 
 	GotoXY(62, 27);
-	cout << "*1 attachment. Enter path to save: ";
+	cout << "*" << mail.att.size() << " attachment. Enter path to save all: ";
 	DrawBox(57, 3, 62, 28, GRAY, 0);
 	GotoXY(63, 29);
 	cout << " > ";
@@ -207,9 +207,10 @@ void HoverMailBox(MAIL mail, int line) {
 }
 
 void UnhoverMailBox(MAIL mail, int line) {
-	DrawBox(37, 4, 22, line * 4, CYAN, 0);
-	PrintTextInLine("From: " + mail.from, 35, 23, 1 + line * 4, CYAN);
-	PrintTextInLine("Subject: " + mail.subject, 35, 23, 2 + line * 4, CYAN);
+	int col = (mail.read ? BLUE : CYAN);
+	DrawBox(37, 4, 22, line * 4, col, 0);
+	PrintTextInLine("From: " + mail.from, 35, 23, 1 + line * 4, col);
+	PrintTextInLine("Subject: " + mail.subject, 35, 23, 2 + line * 4, col);
 }
 
 void MainMenu(LIST& mail, CONFIG& cnf) {
@@ -275,17 +276,17 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 
 			}
 			else {
-				LIST tmp;
+				vector <int> tmp;
 				for (int i = 0; i < mail.size(); i++) {
 					if (mail[i].type == pos)
-						tmp.push_back(mail[i]);
+						tmp.push_back(i);
 				}
 				int curPage = 0, curLine = 0;
 				int nPage = (int)ceil(1.0 * tmp.size() / 7), nLine = min(7, tmp.size());
 				for (int i = 1; i < nLine; i++)
-					UnhoverMailBox(tmp[i], i);
+					UnhoverMailBox(mail[tmp[i]], i);
 				if (nLine)
-					HoverMailBox(tmp[0], 0);
+					HoverMailBox(mail[tmp[0]], 0);
 
 				while (true) {
 					int nCurPage = curPage, nCurLine = curLine;
@@ -303,15 +304,17 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 					unsigned char c = toupper(_getch());
 					if (c == ESC) {
 						if (tmp.size())
-							UnhoverMailBox(tmp[nCurPage * 7 + curLine], curLine);
+							UnhoverMailBox(mail[tmp[nCurPage * 7 + curLine]], curLine);
 						break;
 					}
 					if (tmp.size() == 0)
 						continue;
 					else if (c == ENTER) {
-						int page = 0, nPage = (int)ceil(1.0 * tmp[curPage * 7 + curLine].line.size() / 18);
+						int page = 0, nPage = max(1, (int)ceil(1.0 * mail[tmp[curPage * 7 + curLine]].line.size() / 18));
+						mail[curPage * 7 + curLine].markAsRead(cnf);
 						MailContent(mail[curPage * 7 + curLine], page);
 						while (true) {
+							bool main = 1;
 							unsigned char c = toupper(_getch());
 							if (c == ESC) {
 								break;
@@ -320,8 +323,33 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 								page = (page + 1) % nPage;
 							else if (c == LEFT_ARROW)
 								page = (page - 1 + nPage) % nPage;
+							else if (c == DOWN_ARROW)
+								main = 0;
+							if (!main) {
+								GotoXY(66, 29);
+								string path = "";
+								int tmpCol = GetCurrentColor();
+								TextColor(YELLOW);
+								EnterPath(path, 50);
+								MAIL x = mail[tmp[curPage * 7 + curLine]];
+								if (path != "" && x.att.size()) {
+									// save file here
+									string fileName = "", encodedData = "";
+									for (int i = 0; i < x.att.size(); i++) {
+										int pos = x.att[i].find("Content-Transfer-Encoding: base64");
+										encodedData = x.att[i].substr(Find(x.att[i], '4', pos) + 1);
+										pos -= 2;
+										int tmpPos = pos;
+										while (x.att[i][pos] != '\"') pos--;
+										pos++;
+										fileName = x.att[i].substr(pos, tmpPos - pos + 1);
+										Base64::decode(encodedData, path + "/" + fileName);
+									}
+								}
+								TextColor(tmpCol);
+							}
 							ClearBox(57, 18, 62, 6);
-							MailContent(tmp[curPage * 7 + curLine], page);
+							MailContent(mail[tmp[curPage * 7 + curLine]], page);
 						}
 						ClearBox(58, HEIGHT, 61, 0);
 					}
@@ -334,8 +362,8 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 						}
 						ClearBox(39, HEIGHT, 21, 0);
 						for (int i = nCurPage * 7 + 1; i < min((nCurPage + 1) * 7, tmp.size()); i++)
-							UnhoverMailBox(tmp[i], i - nCurPage * 7);
-						HoverMailBox(tmp[nCurPage * 7], 0);
+							UnhoverMailBox(mail[tmp[i]], i - nCurPage * 7);
+						HoverMailBox(mail[tmp[nCurPage * 7]], 0);
 						curPage = nCurPage;
 						curLine = nCurLine;
 					}
@@ -348,8 +376,8 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 							nCurLine = (curLine + 1) % nLine;
 						else if (c == UP_ARROW)
 							nCurLine = (curLine - 1 + nLine) % nLine;
-						UnhoverMailBox(tmp[nCurPage * 7 + curLine], curLine);
-						HoverMailBox(tmp[nCurPage * 7 + nCurLine], nCurLine);
+						UnhoverMailBox(mail[tmp[nCurPage * 7 + curLine]], curLine);
+						HoverMailBox(mail[tmp[nCurPage * 7 + nCurLine]], nCurLine);
 					}
 					curPage = nCurPage;
 					curLine = nCurLine;

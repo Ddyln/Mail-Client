@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #endif
@@ -24,13 +24,14 @@
 #include <ws2tcpip.h>
 #include <filesystem>
 #include "nlohmann/json.hpp"
+#include "base64.h"
 using namespace std;
 #pragma comment(lib, "ws2_32.lib")
 
 // Console size
 #define WIDTH 121
 #define HEIGHT 31
-#define buflen 8192
+#define buflen 4194304
 #define MaxChar 57
 
 // Color code
@@ -89,6 +90,7 @@ using namespace std;
 #define RIGHT_ARROW 77
 #define DOWN_ARROW 80
 
+const string MIME_start = "This is a multi-part message in MIME format.";
 enum FILTER{
 	SENT,
 	INBOX,
@@ -106,8 +108,22 @@ struct CONFIG {
 struct MAIL {
 	string subject = "", from = "", to = "", cc = "", ID = "";
 	vector <string> line;
+	vector <string> att;
 	string text = "";
+	string boundary = "";
 	FILTER type = INBOX;
+	bool read = false;
+
+	void markAsRead(CONFIG& cnf) {
+		read = true;
+		fstream f{ "user_data/" + cnf.mail + "/" + ID + ".json" };
+		auto data = nlohmann::json::parse(f);
+		f.close();
+		ofstream out{ "user_data/" + cnf.mail + "/" + ID + ".json" };
+		data["read"] = read;
+		out << setw(4) << data;
+		out.close();
+	}
 };
 
 typedef vector <MAIL> LIST;
