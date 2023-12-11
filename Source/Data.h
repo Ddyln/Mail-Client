@@ -92,7 +92,6 @@ using namespace std;
 
 const string MIME_start = "This is a multi-part message in MIME format.";
 enum FILTER{
-	SENT,
 	INBOX,
 	PROJECT,
 	IMPORTANT,
@@ -103,6 +102,7 @@ enum FILTER{
 struct CONFIG {
 	string username = "", mail = "", password = "", server = "";
 	int SMTP = 0, POP3 = 0, autoload = 0;
+	vector <string> filteredBySender, important, work, project, spam;
 };
 
 struct MAIL {
@@ -116,10 +116,22 @@ struct MAIL {
 
 	void markAsRead(CONFIG& cnf) {
 		read = true;
-		fstream f{ "user_data/" + cnf.mail + "/" + ID + ".json" };
+		string path = "user_data/" + cnf.mail + "/";
+		if (type == INBOX)
+			path += "INBOX/";
+		else if (type == IMPORTANT)
+			path += "IMPORTANT/";
+		else if (type == PROJECT)
+			path += "PROJECT/";
+		else if (type == WORK)
+			path += "WORK/";
+		else if (type == SPAM)
+			path += "SPAM/";
+		path += ID + ".json";
+		fstream f{ path };
 		auto data = nlohmann::json::parse(f);
 		f.close();
-		ofstream out{ "user_data/" + cnf.mail + "/" + ID + ".json" };
+		ofstream out{ path };
 		data["read"] = read;
 		out << setw(4) << data;
 		out.close();

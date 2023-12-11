@@ -149,7 +149,7 @@ void MailContent(MAIL mail, int page) {
 }
 
 void UnhoverButton(int pos) {
-	pos = (pos + 1) % 7;
+	pos = (pos + 1) % 6;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
 		DrawBox(16, 3, 2, 0, CYAN, 0);
@@ -158,7 +158,7 @@ void UnhoverButton(int pos) {
 		cout << "+ New message";
 	}
 	else {
-		string button[6] = { "Sent", "Inbox", "Project", "Important", "Spam", "Work" };
+		string button[5] = { "Inbox", "Project", "Important", "Spam", "Work" };
 		GotoXY(5, 6 + (pos - 1) * 2);
 		TextColor(BLUE);
 		cout << button[pos - 1];
@@ -169,7 +169,7 @@ void UnhoverButton(int pos) {
 }
 
 void HoverButton(int pos) {
-	pos = (pos + 1) % 7;
+	pos = (pos + 1) % 6;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
 		DrawBox(16, 3, 2, 0, RED, 0);
@@ -178,7 +178,7 @@ void HoverButton(int pos) {
 		cout << "+ New message";
 	}
 	else {
-		string button[6] = { "Sent", "Inbox", "Project", "Important", "Spam", "Work" };
+		string button[5] = { "Inbox", "Project", "Important", "Spam", "Work" };
 		GotoXY(5, 6 + (pos - 1) * 2);
 		TextColor(RED);
 		cout << button[pos - 1];
@@ -231,7 +231,7 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 	cout << "+ New message";
 
 	GotoXY(2, 4);
-	TextColor(BLUE);
+	TextColor(YELLOW);
 	if (cnf.mail.size() > 20) {
 		GotoXY(0, 4);
 		for (int i = 0; i < 17; i++)
@@ -245,34 +245,31 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 
 	GotoXY(5, 6);
 	TextColor(BLUE);
-	cout << "Sent";
-	GotoXY(5, 8);
-	TextColor(BLUE);
 	cout << "Inbox";
-	GotoXY(5, 10);
+	GotoXY(5, 8);
 	cout << "Project";
-	GotoXY(5, 12);
+	GotoXY(5, 10);
 	cout << "Important";
-	GotoXY(5, 14);
+	GotoXY(5, 12);
 	cout << "Spam";
-	GotoXY(5, 16);
+	GotoXY(5, 14);
 	cout << "Work";
-	int pos = 6;
+	int pos = 5;
 	
 	while (true) {
 		unsigned char c = toupper(_getch());
 		if (c == DOWN_ARROW || c == UP_ARROW) {
 			int newPos = pos;
 			if (c == DOWN_ARROW)
-				newPos = (pos + 1) % 7;
+				newPos = (pos + 1) % 6;
 			else
-				newPos = (pos - 1 + 7) % 7;
+				newPos = (pos - 1 + 6) % 6;
 			UnhoverButton(pos);
 			HoverButton(newPos);
 			pos = newPos;
 		}
 		else if (c == ENTER) {
-			if (pos == 6) {
+			if (pos == 5) {
 
 			}
 			else {
@@ -297,6 +294,7 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 					while (s.size() < 2) s = "0" + s;
 					footer += "/" + s + ">";
 					GotoXY(20 + 17, HEIGHT - 2);
+					TextColor(BLACK);
 					cout << footer;
 					GotoXY(20 + 15, HEIGHT - 3);
 					for (int i = 0; i < 11; i++)
@@ -311,8 +309,8 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 						continue;
 					else if (c == ENTER) {
 						int page = 0, nPage = max(1, (int)ceil(1.0 * mail[tmp[curPage * 7 + curLine]].line.size() / 18));
-						mail[curPage * 7 + curLine].markAsRead(cnf);
-						MailContent(mail[curPage * 7 + curLine], page);
+						mail[tmp[curPage * 7 + curLine]].markAsRead(cnf);
+						MailContent(mail[tmp[curPage * 7 + curLine]], page);
 						while (true) {
 							bool main = 1;
 							unsigned char c = toupper(_getch());

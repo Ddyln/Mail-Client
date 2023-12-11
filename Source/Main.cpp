@@ -18,7 +18,12 @@ int main() {
 		tmp["server"],
 		tmp["SMTP"],
 		tmp["POP3"],
-		tmp["autoload"]
+		tmp["autoload"],
+		tmp["filteredBySender"],
+		tmp["important"],
+		tmp["work"],
+		tmp["project"],
+		tmp["spam"]
 	};
 	LIST mail;
 	Init(mail, cnf);

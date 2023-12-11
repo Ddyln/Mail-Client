@@ -118,9 +118,16 @@ MAIL MsgParser(char s[]) {
 }
 
 void CreateUser(string user) {
-    system(("mkdir " + user + " 2> nul").c_str());
-    system(("move " + user + " user_data 2> nul > nul").c_str());
-    system(("rmdir " + user + " 2> nul").c_str());
+    system(("mkdir user_data\\" + user + "\\INBOX 2> nul").c_str());
+    system(("mkdir user_data\\" + user + "\\PROJECT 2> nul").c_str());
+    system(("mkdir user_data\\" + user + "\\IMPORTANT 2> nul").c_str());
+    system(("mkdir user_data\\" + user + "\\SPAM 2> nul").c_str());
+    system(("mkdir user_data\\" + user + "\\WORK 2> nul").c_str());
+    if (FileSize("user_data/" + user + "/mail_id.json") <= 0) {
+        ofstream f("user_data/" + user + "/mail_id.json");
+        f << "{}";
+        f.close();
+    }
 }
 
 MAIL RetrMail(SOCKET sock, int i) {
@@ -140,6 +147,30 @@ int FileSize(string path) {
     file.seekg(0, std::ios::end);
     streampos fileSize = file.tellg();
     return fileSize;
+}
+
+void FilterMail(MAIL& mail, CONFIG& cnf) {
+    mail.type = INBOX;
+    for (string& subject : cnf.important)
+        if (mail.subject.find(subject) != string::npos) {
+            mail.type = IMPORTANT;
+            return;
+        }
+    for (string& content : cnf.work)
+        if (mail.text.find(content) != string::npos) {
+            mail.type = WORK;
+            return;
+        }
+    for (string& text : cnf.spam)
+        if (mail.subject.find(text) != string::npos || mail.text.find(text) != string::npos) {
+            mail.type = SPAM;
+            return;
+        }
+    for (string& sender : cnf.project) 
+        if (mail.from.find(sender) != string::npos) {
+            mail.type = PROJECT;
+            return;
+        }
 }
 
 int Init(LIST& mail, CONFIG& cnf) {
@@ -191,7 +222,6 @@ int Init(LIST& mail, CONFIG& cnf) {
         n = n * 10 + (recvbuf[i++] - '0');
     }
     mail.resize(n);
-
     memset(recvbuf, 0, buflen);
     command = "UIDL\n";
     Send(sock, command);
@@ -203,31 +233,37 @@ int Init(LIST& mail, CONFIG& cnf) {
         mail[i].ID = (string(recvbuf)).substr(pos + 1, (tmp = Find(recvbuf, '.', pos)) - pos - 1);
         pos = tmp;
     }
-
     CreateUser(cnf.mail);
-    if (FileSize("user_data/" + cnf.mail + "/mail_id.json") <= 0) {
-        ofstream f("user_data/" + cnf.mail + "/mail_id.json");
-        f << "{}";
-        f.close();
-    }
+ 
     fstream f{ "user_data/" + cnf.mail + "/mail_id.json" };
     auto data = nlohmann::json::parse(f);
     f.close();
-
     for (int i = 0; i < n; i++) {
         string ID = mail[i].ID;
         auto it = data.find(ID);
         if (it == data.end()) {
             mail[i] = (RetrMail(sock, i + 1));
             mail[i].ID = ID;
-            ofstream file("user_data/" + cnf.mail + "/" + mail[i].ID + ".json");
+            FilterMail(mail[i], cnf);
+            string path = "user_data/" + cnf.mail + "/";
+            if (mail[i].type == INBOX)
+                path += "INBOX/";
+            else if (mail[i].type == IMPORTANT)
+                path += "IMPORTANT/";
+            else if (mail[i].type == PROJECT)
+                path += "PROJECT/";
+            else if (mail[i].type == WORK)
+                path += "WORK/";
+            else if (mail[i].type == SPAM)
+                path += "SPAM/";
+            path += ID + ".json";
+            ofstream file(path);
             file << "{}";
             file.close();
 
-            fstream f{ "user_data/" + cnf.mail + "/" + mail[i].ID + ".json" };
+            fstream f{ path };
             auto data = nlohmann::json::parse(f);
             f.close();
-
             data["subject"] = mail[i].subject;
             data["from"] = mail[i].from;
             data["to"] = mail[i].to;
@@ -240,13 +276,33 @@ int Init(LIST& mail, CONFIG& cnf) {
             data["att"] = mail[i].att;
             data["read"] = mail[i].read;
 
-            file.open("user_data/" + cnf.mail + "/" + mail[i].ID + ".json");
+            file.open(path);
             file << setw(4) << data;
             file.close();
         }
         else {
-            fstream f{ "user_data/" + cnf.mail + "/" + mail[i].ID + ".json" };
+            int t = INBOX;
+            {
+                fstream f{ "user_data/" + cnf.mail + "/mail_id.json" };
+                auto data = nlohmann::json::parse(f); 
+                f.close();
+                t = data[ID];
+            }
+            string path = "user_data/" + cnf.mail + "/";
+            if (t == INBOX)
+                path += "INBOX/";
+            else if (t == IMPORTANT)
+                path += "IMPORTANT/";
+            else if (t == PROJECT)
+                path += "PROJECT/";
+            else if (t == WORK)
+                path += "WORK/";
+            else if (t == SPAM)
+                path += "SPAM/";
+            path += ID + ".json";
+            fstream f{ path };
             auto data = nlohmann::json::parse(f);
+
             f.close();
             mail[i].from = data["from"];
             mail[i].to = data["to"];
@@ -259,7 +315,7 @@ int Init(LIST& mail, CONFIG& cnf) {
             mail[i].att = data["att"];
             mail[i].read = data["read"];
         }
-        data[mail[i].ID] = 1;
+        data[mail[i].ID] = mail[i].type;
     }
 
     command = "QUIT\n";
@@ -307,25 +363,28 @@ bool EnterPath(string& s, int len) {
 }
 
 //lọc = người gửi
-LIST FilterMailBySender(const LIST& mailList, const string& sender) {
-    LIST filteredList;
-    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
-        [sender](const MAIL& mail) { return mail.from == sender; });
+vector <int> FilterMailBySender(const LIST& mailList, const string& sender) {
+    vector <int> filteredList;
+    for (int i = 0; i < mailList.size(); i++)
+        if (mailList[i].from == sender)
+            filteredList.push_back(i);
     return filteredList;
 }
 
 //lọc = subject
-LIST FilterMailBySubject(const LIST& mailList, const string& subject) {
-    LIST filteredList;
-    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
-        [subject](const MAIL& mail) { return mail.subject == subject; });
+vector <int> FilterMailBySubject(const LIST& mailList, const string& subject) {
+    vector <int> filteredList;
+    for (int i = 0; i < mailList.size(); i++)
+        if (mailList[i].subject == subject)
+            filteredList.push_back(i);
     return filteredList;
 }
 
 //lọc = nội dung
-LIST FilterMailByContent(const LIST& mailList, const string& content) {
-    LIST filteredList;
-    copy_if(mailList.begin(), mailList.end(), back_inserter(filteredList),
-        [content](const MAIL& mail) { return mail.text.find(content) != string::npos; });
+vector <int> FilterMailByContent(const LIST& mailList, const string& content) {
+    vector <int> filteredList;
+    for (int i = 0; i < mailList.size(); i++)
+        if (mailList[i].text.find(content) != string::npos)
+            filteredList.push_back(i);
     return filteredList;
 }

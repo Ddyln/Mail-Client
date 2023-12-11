@@ -8,7 +8,7 @@
         "okok",
         ""
     ],
-    "read": true,
+    "read": false,
     "subject": "only text",
     "text": "okok\n",
     "to": "test123@ddlan.com",
