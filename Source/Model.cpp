@@ -151,6 +151,11 @@ int FileSize(string path) {
 
 void FilterMail(MAIL& mail, CONFIG& cnf) {
     mail.type = INBOX;
+    for (string& text : cnf.spam)
+        if (mail.subject.find(text) != string::npos || mail.text.find(text) != string::npos) {
+            mail.type = SPAM;
+            return;
+        }
     for (string& subject : cnf.important)
         if (mail.subject.find(subject) != string::npos) {
             mail.type = IMPORTANT;
@@ -159,11 +164,6 @@ void FilterMail(MAIL& mail, CONFIG& cnf) {
     for (string& content : cnf.work)
         if (mail.text.find(content) != string::npos) {
             mail.type = WORK;
-            return;
-        }
-    for (string& text : cnf.spam)
-        if (mail.subject.find(text) != string::npos || mail.text.find(text) != string::npos) {
-            mail.type = SPAM;
             return;
         }
     for (string& sender : cnf.project) 
@@ -360,31 +360,4 @@ bool EnterPath(string& s, int len) {
     }
     HideCursor(1);
     return 1;
-}
-
-//lọc = người gửi
-vector <int> FilterMailBySender(const LIST& mailList, const string& sender) {
-    vector <int> filteredList;
-    for (int i = 0; i < mailList.size(); i++)
-        if (mailList[i].from == sender)
-            filteredList.push_back(i);
-    return filteredList;
-}
-
-//lọc = subject
-vector <int> FilterMailBySubject(const LIST& mailList, const string& subject) {
-    vector <int> filteredList;
-    for (int i = 0; i < mailList.size(); i++)
-        if (mailList[i].subject == subject)
-            filteredList.push_back(i);
-    return filteredList;
-}
-
-//lọc = nội dung
-vector <int> FilterMailByContent(const LIST& mailList, const string& content) {
-    vector <int> filteredList;
-    for (int i = 0; i < mailList.size(); i++)
-        if (mailList[i].text.find(content) != string::npos)
-            filteredList.push_back(i);
-    return filteredList;
 }

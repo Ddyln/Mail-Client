@@ -12,7 +12,7 @@
         "",
         "/"
     ],
-    "read": true,
+    "read": false,
     "subject": "mail 3",
     "text": "aaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddeeeeeeeeeeeeeeeeeeeeeeeeee\nbbye\n\n/",
     "to": "test123@ddlan.com",

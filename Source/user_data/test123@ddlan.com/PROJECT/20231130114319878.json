@@ -10,7 +10,7 @@
         "ok",
         "bye"
     ],
-    "read": true,
+    "read": false,
     "subject": "mail 3",
     "text": "test\n123\nok\nbye",
     "to": "test123@ddlan.com",

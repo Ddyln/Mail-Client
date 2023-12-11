@@ -1,9 +1,9 @@
 {
     "POP3": 3335,
     "SMTP": 2225,
-    "autoload": 10,
+    "autoload": 5,
     "mail": "test123@ddlan.com",
-    "password": "24223671",
+    "password": "1",
     "server": "127.0.0.1",
     "username": "Dang Duy Lan",
     "filteredBySender" : [

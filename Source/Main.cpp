@@ -27,7 +27,6 @@ int main() {
 	};
 	LIST mail;
 	Init(mail, cnf);
-
 	while (true) {
 		MainMenu(mail, cnf);
 	}

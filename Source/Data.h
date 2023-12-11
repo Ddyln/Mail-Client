@@ -22,7 +22,8 @@
 #include <sstream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <filesystem>
+#include <chrono>
+#include <thread>
 #include "nlohmann/json.hpp"
 #include "base64.h"
 using namespace std;
@@ -106,7 +107,7 @@ struct CONFIG {
 };
 
 struct MAIL {
-	string subject = "", from = "", to = "", cc = "", ID = "";
+	string subject = "", from = "", to = "", cc = "", ID = "", contentType = "";
 	vector <string> line;
 	vector <string> att;
 	string text = "";

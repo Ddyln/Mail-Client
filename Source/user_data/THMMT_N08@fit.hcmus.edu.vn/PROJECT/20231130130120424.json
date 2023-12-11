@@ -1,0 +1,20 @@
+{
+    "ID": "20231130130120424",
+    "att": [],
+    "boundary": "",
+    "cc": "test456@lan.com, test789@ddlan.com",
+    "from": "Dang Duy Lan <test123@ddlan.com>",
+    "line": [
+        "h",
+        "",
+        "a",
+        "",
+        "b",
+        ""
+    ],
+    "read": true,
+    "subject": "ok",
+    "text": "h\n\na\n\nb\n",
+    "to": "THMMT_N08@fit.hcmus.edu.vn",
+    "type": 1
+}

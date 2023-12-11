@@ -1,16 +1,16 @@
 {
-    "ID": "20231211123806400",
+    "ID": "20231211185328259",
     "att": [],
     "boundary": "",
     "cc": "",
     "from": "MMT - N08 <THMMT_N08@fit.hcmus.edu.vn>",
     "line": [
-        "ok",
+        "aoskdaos",
         ""
     ],
-    "read": false,
-    "subject": "mail in project folder",
-    "text": "ok\n",
+    "read": true,
+    "subject": "ok",
+    "text": "aoskdaos\n",
     "to": "test123@ddlan.com",
     "type": 1
 }

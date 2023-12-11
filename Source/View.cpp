@@ -254,8 +254,17 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 	cout << "Spam";
 	GotoXY(5, 14);
 	cout << "Work";
-	int pos = 5;
-	
+	int pos = 5, curMailSize = mail.size();
+	bool wait = 0;
+	thread mailThread([&mail, &cnf, &wait]() {
+		while (true) {
+			wait = 1;
+			Init(mail, cnf);
+			wait = 0;
+			this_thread::sleep_for(std::chrono::seconds(cnf.autoload));
+		}
+	});
+
 	while (true) {
 		unsigned char c = toupper(_getch());
 		if (c == DOWN_ARROW || c == UP_ARROW) {
@@ -273,20 +282,38 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 
 			}
 			else {
-				vector <int> tmp;
+				vector <int> filteredIndex;
 				for (int i = 0; i < mail.size(); i++) {
 					if (mail[i].type == pos)
-						tmp.push_back(i);
+						filteredIndex.push_back(i);
 				}
 				int curPage = 0, curLine = 0;
-				int nPage = (int)ceil(1.0 * tmp.size() / 7), nLine = min(7, tmp.size());
+				int nPage = (int)ceil(1.0 * filteredIndex.size() / 7), nLine = min(7, filteredIndex.size());
 				for (int i = 1; i < nLine; i++)
-					UnhoverMailBox(mail[tmp[i]], i);
+					UnhoverMailBox(mail[filteredIndex[i]], i);
 				if (nLine)
-					HoverMailBox(mail[tmp[0]], 0);
-
+					HoverMailBox(mail[filteredIndex[0]], 0);
+				
 				while (true) {
-					int nCurPage = curPage, nCurLine = curLine;
+					if (mail.size() > curMailSize) {
+						GotoXY(0, 0);
+						while (wait);
+						for (int i = curMailSize; i < mail.size(); i++) {
+							if (mail[i].type == pos)
+								filteredIndex.push_back(i);
+						}
+						nPage = (int)ceil(1.0 * filteredIndex.size() / 7); 
+						if (curPage != nPage - 1)
+							nLine = 7;
+						else {
+							nLine = filteredIndex.size() % 7;
+							if (!nLine && filteredIndex.size()) nLine = 7;
+						}
+						for (int i = curPage * 7; i < min((curPage + 1) * 7, filteredIndex.size()); i++)
+							UnhoverMailBox(mail[filteredIndex[i]], i - curPage * 7);
+						HoverMailBox(mail[filteredIndex[curPage * 7]], curLine);
+						curMailSize = mail.size();
+					}
 					string s = to_string(curPage + 1);
 					while (s.size() < 2) s = "0" + s;
 					string footer = "<" + s;
@@ -299,90 +326,95 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 					GotoXY(20 + 15, HEIGHT - 3);
 					for (int i = 0; i < 11; i++)
 						cout << H_LINE;
-					unsigned char c = toupper(_getch());
-					if (c == ESC) {
-						if (tmp.size())
-							UnhoverMailBox(mail[tmp[nCurPage * 7 + curLine]], curLine);
-						break;
-					}
-					if (tmp.size() == 0)
-						continue;
-					else if (c == ENTER) {
-						int page = 0, nPage = max(1, (int)ceil(1.0 * mail[tmp[curPage * 7 + curLine]].line.size() / 18));
-						mail[tmp[curPage * 7 + curLine]].markAsRead(cnf);
-						MailContent(mail[tmp[curPage * 7 + curLine]], page);
-						while (true) {
-							bool main = 1;
-							unsigned char c = toupper(_getch());
-							if (c == ESC) {
-								break;
-							}
-							else if (c == RIGHT_ARROW)
-								page = (page + 1) % nPage;
-							else if (c == LEFT_ARROW)
-								page = (page - 1 + nPage) % nPage;
-							else if (c == DOWN_ARROW)
-								main = 0;
-							if (!main) {
-								GotoXY(66, 29);
-								string path = "";
-								int tmpCol = GetCurrentColor();
-								TextColor(YELLOW);
-								EnterPath(path, 50);
-								MAIL x = mail[tmp[curPage * 7 + curLine]];
-								if (path != "" && x.att.size()) {
-									// save file here
-									string fileName = "", encodedData = "";
-									for (int i = 0; i < x.att.size(); i++) {
-										int pos = x.att[i].find("Content-Transfer-Encoding: base64");
-										encodedData = x.att[i].substr(Find(x.att[i], '4', pos) + 1);
-										pos -= 2;
-										int tmpPos = pos;
-										while (x.att[i][pos] != '\"') pos--;
-										pos++;
-										fileName = x.att[i].substr(pos, tmpPos - pos + 1);
-										Base64::decode(encodedData, path + "/" + fileName);
-									}
+					if (_kbhit()) {
+						int nCurPage = curPage, nCurLine = curLine;
+						unsigned char c = toupper(_getch());
+						if (c == ESC) {
+							if (filteredIndex.size())
+								UnhoverMailBox(mail[filteredIndex[nCurPage * 7 + curLine]], curLine);
+							break;
+						}
+						if (filteredIndex.size() == 0)
+							continue;
+						else if (c == ENTER) {
+							int page = 0, nPage = max(1, (int)ceil(1.0 * mail[filteredIndex[curPage * 7 + curLine]].line.size() / 18));
+							mail[filteredIndex[curPage * 7 + curLine]].markAsRead(cnf);
+							MailContent(mail[filteredIndex[curPage * 7 + curLine]], page);
+							while (true) {
+								bool main = 1;
+								unsigned char c = toupper(_getch());
+								if (c == ESC) {
+									break;
 								}
-								TextColor(tmpCol);
+								else if (c == RIGHT_ARROW)
+									page = (page + 1) % nPage;
+								else if (c == LEFT_ARROW)
+									page = (page - 1 + nPage) % nPage;
+								else if (c == DOWN_ARROW)
+									main = 0;
+								if (!main) {
+									GotoXY(66, 29);
+									string path = "";
+									int tmpCol = GetCurrentColor();
+									TextColor(YELLOW);
+									EnterPath(path, 50);
+									MAIL x = mail[filteredIndex[curPage * 7 + curLine]];
+									if (path != "" && x.att.size()) {
+										// save file here
+										string fileName = "", encodedData = "";
+										for (int i = 0; i < x.att.size(); i++) {
+											int pos = x.att[i].find("Content-Transfer-Encoding: base64");
+											encodedData = x.att[i].substr(Find(x.att[i], '4', pos) + 1);
+											pos -= 2;
+											int tmpPos = pos;
+											while (x.att[i][pos] != '\"') pos--;
+											pos++;
+											fileName = x.att[i].substr(pos, tmpPos - pos + 1);
+											Base64::decode(encodedData, path + "/" + fileName);
+										}
+									}
+									TextColor(tmpCol);
+								}
+								ClearBox(57, 18, 62, 6);
+								MailContent(mail[filteredIndex[curPage * 7 + curLine]], page);
 							}
-							ClearBox(57, 18, 62, 6);
-							MailContent(mail[tmp[curPage * 7 + curLine]], page);
+							ClearBox(58, HEIGHT, 61, 0);
 						}
-						ClearBox(58, HEIGHT, 61, 0);
-					}
-					else if (c == RIGHT_ARROW || c == LEFT_ARROW) {
-						if (c == RIGHT_ARROW) {
-							nCurPage = (curPage + 1) % nPage, nCurLine = 0;
+						else if (c == RIGHT_ARROW || c == LEFT_ARROW) {
+							if (c == RIGHT_ARROW) {
+								nCurPage = (curPage + 1) % nPage, nCurLine = 0;
+							}
+							else if (c == LEFT_ARROW) {
+								nCurPage = (curPage - 1 + nPage) % nPage, nCurLine = 0;
+							}
+							ClearBox(39, HEIGHT, 21, 0);
+							for (int i = nCurPage * 7 + 1; i < min((nCurPage + 1) * 7, filteredIndex.size()); i++)
+								UnhoverMailBox(mail[filteredIndex[i]], i - nCurPage * 7);
+							HoverMailBox(mail[filteredIndex[nCurPage * 7]], 0);
+							curPage = nCurPage;
+							curLine = nCurLine;
 						}
-						else if (c == LEFT_ARROW) {
-							nCurPage = (curPage - 1 + nPage) % nPage, nCurLine = 0;
+						else {
+							if (curPage != nPage - 1)
+								nLine = 7;
+							else {
+								nLine = filteredIndex.size() % 7;
+								if (!nLine && filteredIndex.size()) nLine = 7;
+							}
+							if (c == DOWN_ARROW)
+								nCurLine = (curLine + 1) % nLine;
+							else if (c == UP_ARROW)
+								nCurLine = (curLine - 1 + nLine) % nLine;
+							UnhoverMailBox(mail[filteredIndex[curPage * 7 + curLine]], curLine);
+							HoverMailBox(mail[filteredIndex[curPage * 7 + nCurLine]], nCurLine);
 						}
-						ClearBox(39, HEIGHT, 21, 0);
-						for (int i = nCurPage * 7 + 1; i < min((nCurPage + 1) * 7, tmp.size()); i++)
-							UnhoverMailBox(mail[tmp[i]], i - nCurPage * 7);
-						HoverMailBox(mail[tmp[nCurPage * 7]], 0);
 						curPage = nCurPage;
 						curLine = nCurLine;
 					}
-					else {
-						if (curPage != nPage - 1)
-							nLine = 7;
-						else
-							nLine = tmp.size() % 7;
-						if (c == DOWN_ARROW)
-							nCurLine = (curLine + 1) % nLine;
-						else if (c == UP_ARROW)
-							nCurLine = (curLine - 1 + nLine) % nLine;
-						UnhoverMailBox(mail[tmp[nCurPage * 7 + curLine]], curLine);
-						HoverMailBox(mail[tmp[nCurPage * 7 + nCurLine]], nCurLine);
-					}
-					curPage = nCurPage;
-					curLine = nCurLine;
 				}
 				ClearBox(39, HEIGHT, 21, 0);
 			}
 		}
 	}
-
+	mailThread.join();
 }

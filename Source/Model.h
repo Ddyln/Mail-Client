@@ -11,7 +11,4 @@ MAIL RetrMail(SOCKET sock, int i);
 void CreateUser(string user);
 int FileSize(string path);
 bool EnterPath(string& s, int len);
-vector <int> FilterMailBySender(const LIST& mailList, const string& sender);
-vector <int> FilterMailBySubject(const LIST& mailList, const string& subject);
-vector <int> FilterMailByContent(const LIST& mailList, const string& content);
 void FilterMail(MAIL& mailm, CONFIG& cnf);
