@@ -1,16 +1,16 @@
 {
-    "ID": "20231202223804728",
+    "ID": "20231212114539052",
     "att": [],
     "boundary": "",
-    "cc": "",
+    "cc": "test456@lan.com, test789@ddlan.com",
     "from": "Dang Duy Lan <test123@ddlan.com>",
     "line": [
-        "sdad",
+        "ok",
         ""
     ],
     "read": true,
-    "subject": "asd",
-    "text": "sdad\n",
+    "subject": "test cc and bcc",
+    "text": "ok\n",
     "to": "test123@ddlan.com",
     "type": 1
 }

@@ -107,6 +107,47 @@ void ClearBox(int w, int h, int x, int y) {
 	TextColor(tmp);
 }
 
+void ClearBorder(int w, int h, int x, int y) {
+	int tmp = GetCurrentColor();
+	TextColor(CYAN);
+	for (int i = 0; i < w; i++) {
+		GotoXY(x + i, y);
+		cout << ' ';
+		GotoXY(x + i, y + h - 1);
+		cout << ' ';
+	}
+	for (int i = 1; i < h - 1; i++) {
+		GotoXY(x, y + i);
+		cout << ' ';
+		GotoXY(x + w - 1, y + i);
+		cout << ' ';
+	}
+	TextColor(tmp);
+}
+
+void DrawBorder(int w, int h, int x, int y, int col) {
+	int tmp = GetCurrentColor();
+	TextColor(col);
+	for (int i = 0; i < w; i++) {
+		GotoXY(x + i, y);
+		cout << H_LINE;
+		GotoXY(x + i, y + h - 1);
+		cout << H_LINE;
+	}
+
+	for (int i = 1; i < h - 1; i++) {
+		GotoXY(x, y + i);
+		cout << V_LINE;
+		GotoXY(x + w - 1, y + i);
+		cout << V_LINE;
+	}
+	GotoXY(x, y); cout << TOP_LEFT;
+	GotoXY(x + w - 1, y); cout << TOP_RIGHT;
+	GotoXY(x, y + h - 1); cout << BOTTOM_LEFT;
+	GotoXY(x + w - 1, y + h - 1); cout << BOTTOM_RIGHT;
+	TextColor(tmp);
+}
+
 void MailContent(MAIL mail, int page) {
 	TextColor(BLACK);
 	PrintTextInLine("From: " + mail.from, 56, 63, 0, BLACK);
@@ -152,17 +193,17 @@ void UnhoverButton(int pos) {
 	pos = (pos + 1) % 6;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
-		DrawBox(16, 3, 2, 0, CYAN, 0);
-		GotoXY(3, 1);
+		DrawBox(16, 3, 2, 1, CYAN, 0);
+		GotoXY(3, 2);
 		TextColor(CYAN);
 		cout << "+ New message";
 	}
 	else {
 		string button[5] = { "Inbox", "Project", "Important", "Spam", "Work" };
-		GotoXY(5, 6 + (pos - 1) * 2);
+		GotoXY(5, 9 + (pos - 1) * 3);
 		TextColor(BLUE);
 		cout << button[pos - 1];
-		GotoXY(3, 6 + (pos - 1) * 2);
+		GotoXY(3, 9 + (pos - 1) * 3);
 		cout << " ";
 	}
 	TextColor(tmp);
@@ -172,18 +213,18 @@ void HoverButton(int pos) {
 	pos = (pos + 1) % 6;
 	int tmp = GetCurrentColor();
 	if (pos == 0) {
-		DrawBox(16, 3, 2, 0, RED, 0);
-		GotoXY(3, 1);
+		DrawBox(16, 3, 2, 1, RED, 0);
+		GotoXY(3, 2);
 		TextColor(RED);
 		cout << "+ New message";
 	}
 	else {
 		string button[5] = { "Inbox", "Project", "Important", "Spam", "Work" };
-		GotoXY(5, 6 + (pos - 1) * 2);
+		GotoXY(5, 9 + (pos - 1) * 3);
 		TextColor(RED);
 		cout << button[pos - 1];
 		TextColor(YELLOW);
-		GotoXY(3, 6 + (pos - 1) * 2);
+		GotoXY(3, 9 + (pos - 1) * 3);
 		cout << L_TRIANGLE;
 	}
 	TextColor(tmp);
@@ -213,6 +254,285 @@ void UnhoverMailBox(MAIL mail, int line) {
 	PrintTextInLine("Subject: " + mail.subject, 35, 23, 2 + line * 4, col);
 }
 
+void UnhoverTitle(int i) {
+	if (i < 5)
+		ClearBorder(70, (i == 4 ? 19 : 3), 26, 2 * i);
+	int tmp = GetCurrentColor();
+	TextColor(tmp);
+	if (i == 4) {
+		for (int j = 1; j < 69; j++) {
+			GotoXY(26 + j, 26);
+			cout << H_LINE;
+			GotoXY(26 + j, 8);
+			cout << H_LINE;
+		}
+	}
+	else if (i == 5) {
+		DrawBorder(70, 3, 26, 28, BLACK);
+	}
+	else {
+		for (int j = 1; j < 69; j++) {
+			GotoXY(26 + j, i * 2);
+			cout << H_LINE;
+			GotoXY(26 + j, 2 + i * 2);
+			cout << H_LINE;
+		}
+	}
+	TextColor(tmp);
+}
+
+void HoverTitle(int i) {
+	if (i < 4)
+		DrawBorder(70, 3, 26, 2 * i, RED);
+	else if (i == 4)
+		DrawBorder(70, 19, 26, 2 * i, RED);
+	else
+		DrawBorder(70, 3, 26, 28, RED);
+}
+
+void UnhoverFunc(int i) {
+	int tmp = GetCurrentColor();
+	TextColor(BLACK);
+	string txt[2] = { " Send", "Cancel" };
+	DrawBox(8, 3, 107, 10 + 9 * i, BLACK, 0);
+	GotoXY(108, 11 + 9 * i);
+	cout << txt[i];
+	TextColor(tmp);
+}
+
+void HoverFunc(int i) {
+	int tmp = GetCurrentColor();
+	TextColor(RED);
+	string txt[2] = { " Send", "Cancel" };
+	DrawBox(8, 3, 107, 10 + 9 * i, RED, 0);
+	GotoXY(108, 11 + 9 * i);
+	cout << txt[i];
+	TextColor(tmp);
+}
+
+bool EnterTextInTable(int len, vector <string>& table, int row) {
+	unsigned char c;
+	HideCursor(0);
+	if (table.empty()) table.push_back("");
+	int oriX = WhereX() - (int)table.back().size(), oriY = WhereY() - (int)table.size() + 1, page = 1;
+	int cnt = 0;
+	while (true) {
+		int tmp1 = WhereX(), tmp2 = WhereY();
+		GotoXY(59, 25);
+		cout << "<" << (page < 10 ? "0" : "") << page << ">";
+		GotoXY(tmp1, tmp2);
+		c = _getch();
+		if (c == ENTER) {
+			if ((int)table.size() % row == 0) {
+				page++;
+				ClearBox(68, 15, 27, 9);
+				GotoXY(oriX, oriY);
+			}
+			else
+				GotoXY(oriX, WhereY() + 1);
+			table.push_back("");
+		}
+		else if (c == TAB)
+			break;
+		else if (c == ESC) {
+			table.clear();
+			ClearBox(68, 15, 27, 9);
+			GotoXY(59, 25);
+			cout << "<01>";
+			GotoXY(oriX, oriY);
+			HideCursor(1);
+			return 0;
+		}
+		else if (c == 224)
+			c = _getch();
+		else if (c == BACK_SPACE) {
+			if (table.size() == 1 && table.back().empty()) {
+				continue;
+			}
+			if (table.back().empty()) {
+				if (table.size() % row == 1) {
+					if (page == 1)
+						continue;
+					else {
+						page--;
+						table.pop_back();
+						if (table.back().size()) table.back().pop_back();
+						ClearBox(68, 15, 27, 9);
+						for (int i = (page - 1) * row; i < page * row; i++) {
+							GotoXY(oriX, oriY + i - (page - 1) * row);
+							cout << table[i];
+						}
+					}
+				}
+				else {
+					table.pop_back();
+					if (table.back().size()) table.back().pop_back();
+					GotoXY(oriX + (int)table.back().size(), WhereY() - 1);
+					cout << ' ';
+					GotoXY(WhereX() - 1, WhereY());
+				}
+			}
+			else {
+				table.back().pop_back();
+				GotoXY(WhereX() - 1, WhereY());
+				cout << ' ';
+				GotoXY(WhereX() - 1, WhereY());
+			}
+		}
+		else {
+			cout << c;
+			table.back() += c;
+			if (table.back().size() == len) {
+				if ((int)table.size() % row == 0) {
+					page++;
+					ClearBox(68, 15, 27, 9);
+					GotoXY(oriX, oriY);
+				}
+				else
+					GotoXY(oriX, WhereY() + 1);
+				table.push_back("");
+			}
+		}
+	}
+	HideCursor(1);
+	return 1;
+}
+
+
+void EnterMail() {
+	GotoXY(27, 1);
+	cout << "  To   " << V_LINE << " ";
+	GotoXY(27, 3);
+	cout << "  Cc   " << V_LINE << " ";
+	GotoXY(27, 5);
+	cout << "  Bcc  " << V_LINE << " ";
+	GotoXY(27, 7);
+	cout << "Subject" << V_LINE << " ";
+	GotoXY(27, 27);
+	cout << " * Number of attachments: 0";
+	GotoXY(28, 29);
+	cout << " > ";
+	for (int i = 0; i < 2; i++)
+		UnhoverFunc(i);
+	for (int i = 1; i < 6; i++)
+		UnhoverTitle(i);
+	for (int i = 1; i < HEIGHT - 1; i++) {
+		GotoXY(101, i);
+		cout << V_LINE;
+	}
+	for (int i = 0; i < 20; i++) {
+		GotoXY(51 + i, 24);
+		cout << H_LINE;
+	}
+	GotoXY(59, 25);
+	cout << "<01>";
+	HoverTitle(0);
+	vector <pair <int, int>> buttonPos = { {36, 1}, {36, 3}, {36, 5}, {36, 7}, {28, 9}, {31, 29} };
+	int len[] = { 59, 59, 59, 59, 67, 64 };
+	string buttonText[6] = { "" };
+	int n = 6;
+	vector <string> table;
+	int pos = 0, col = 0, totalFileSize = 0;
+	vector <string> att;
+	while (true) {
+		unsigned char c = _getch();
+		if (c == ESC)
+			return;
+		if (col == 0) {
+			if (c == 224) {
+				c = toupper(_getch());
+				int nPos = pos;
+				if (c == DOWN_ARROW || c == UP_ARROW) {
+					if (c == DOWN_ARROW)
+						nPos = min(5, pos + 1);
+					else 
+						nPos = max(0, pos - 1);
+					UnhoverTitle(pos);
+					HoverTitle(nPos);
+					pos = nPos;
+				}
+				else if (c == RIGHT_ARROW) {
+					col = 1;
+					pos = 0;
+					for (int i = 0; i < 6; i++)
+						UnhoverTitle(i);
+					HoverFunc(pos);
+				}
+			}
+			else if (c == ENTER) {
+				int& x = buttonPos[pos].first, & y = buttonPos[pos].second;
+				GotoXY(x, y);
+				if (pos != 4 && pos != 5)
+					EnterText(buttonText[pos], len[pos]);
+				else if (pos == 4)
+					EnterTextInTable(len[pos], table, 15);
+				else if (pos == 5) {
+					while (true) {
+						buttonText[pos] = "";
+						GotoXY(31, 29);
+						for (int i = 31; i < 95; i++)
+							cout << ' ';
+						GotoXY(31, 29);
+						EnterText(buttonText[pos], len[pos]);
+						GotoXY(31, 29);
+						for (int i = 31; i < 95; i++)
+							cout << ' ';
+						GotoXY(31, 29);
+						int fsz = FileSize(buttonText[pos]);
+						if (fsz < 0) {
+							int tmp = GetCurrentColor();
+							TextColor(RED);
+							cout << "File not Found!";
+							TextColor(tmp);
+							_getch();
+							continue;
+						}
+						if (fsz + totalFileSize > 3000000) {
+							int tmp = GetCurrentColor();
+							TextColor(RED);
+							cout << "Total files size cannot exceed 3MB";
+							TextColor(tmp);
+							_getch();
+							continue;
+						}
+						totalFileSize += fsz;
+						//att.push_back(Base64::encode(buttonText[pos]));
+					}
+				}
+				x = WhereX(), y = WhereY();
+			}
+		}
+		else {
+			if (c == 224) {
+				c = toupper(_getch());
+				int nPos = 0;
+				if (c == DOWN_ARROW || c == UP_ARROW) {
+					if (c == DOWN_ARROW)
+						nPos = min(1, pos + 1);
+					else
+						nPos = max(0, pos - 1);
+					UnhoverFunc(pos);
+					HoverFunc(nPos);
+					pos = nPos;
+				}
+				else if (c == LEFT_ARROW) {
+					col = 0;
+					pos = 0;
+					for (int i = 0; i < 2; i++)
+						UnhoverFunc(i);
+					HoverTitle(pos);
+				}
+			}
+			else if (c == ENTER) {
+				if (pos == 1) 
+					return;
+				int pos = 0;
+				
+			}
+		}
+	}
+}
+
 void MainMenu(LIST& mail, CONFIG& cnf) {
 	SetConsoleBlank();
 	int tmp = GetCurrentColor();
@@ -225,35 +545,35 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 		cout << V_LINE;
 	}
 
-	DrawBox(16, 3, 2, 0, RED, 0);
-	GotoXY(3, 1);
+	DrawBox(16, 3, 2, 1, RED, 0);
+	GotoXY(3, 2);
 	TextColor(RED);
 	cout << "+ New message";
 
-	GotoXY(2, 4);
 	TextColor(YELLOW);
 	if (cnf.mail.size() > 20) {
-		GotoXY(0, 4);
+		GotoXY(0, 6);
 		for (int i = 0; i < 17; i++)
 			cout << cnf.mail[i];
 		cout << "...";
 	}
 	else {
-		GotoXY(10 - cnf.mail.size() / 2, 4);
+		GotoXY(10 - cnf.mail.size() / 2, 6);
 		cout << cnf.mail;
 	}
-
-	GotoXY(5, 6);
-	TextColor(BLUE);
-	cout << "Inbox";
-	GotoXY(5, 8);
-	cout << "Project";
-	GotoXY(5, 10);
-	cout << "Important";
-	GotoXY(5, 12);
-	cout << "Spam";
-	GotoXY(5, 14);
-	cout << "Work";
+	TextColor(BLACK);
+	for (int i = 0; i < 20; i++) {
+		GotoXY(i, 7);
+		cout << H_LINE;
+		GotoXY(i, 5);
+		cout << H_LINE;
+	}
+	GotoXY(20, 7);
+	cout << RIGHT_CROSS;
+	GotoXY(20, 5);
+	cout << RIGHT_CROSS;
+	for (int i = 0; i < 5; i++)
+		UnhoverButton(i);
 	int pos = 5, curMailSize = mail.size();
 	bool wait = 0;
 	thread mailThread([&mail, &cnf, &wait]() {
@@ -279,7 +599,14 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 		}
 		else if (c == ENTER) {
 			if (pos == 5) {
+				ClearBox(WIDTH - 21, HEIGHT, 21, 0);
+				EnterMail();
+				ClearBox(WIDTH - 21, HEIGHT, 21, 0);
 
+				for (int i = 0; i < HEIGHT; i++) {
+					GotoXY(60, i);
+					cout << V_LINE;
+				}
 			}
 			else {
 				vector <int> filteredIndex;
@@ -350,14 +677,18 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 									page = (page + 1) % nPage;
 								else if (c == LEFT_ARROW)
 									page = (page - 1 + nPage) % nPage;
-								else if (c == DOWN_ARROW)
+								else if (c == ENTER)
 									main = 0;
 								if (!main) {
 									GotoXY(66, 29);
 									string path = "";
 									int tmpCol = GetCurrentColor();
 									TextColor(YELLOW);
-									EnterPath(path, 50);
+									EnterText(path, 50);
+									string tmp = path;
+									path = "";
+									for (int i = 0; i < tmp.size(); i++)
+										path += (tmp[i] == '/' ? '\\' : tmp[i]);
 									MAIL x = mail[filteredIndex[curPage * 7 + curLine]];
 									if (path != "" && x.att.size()) {
 										// save file here
@@ -370,7 +701,8 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 											while (x.att[i][pos] != '\"') pos--;
 											pos++;
 											fileName = x.att[i].substr(pos, tmpPos - pos + 1);
-											Base64::decode(encodedData, path + "/" + fileName);
+											path += "\\" + fileName;
+											Base64::decode(encodedData, path);
 										}
 									}
 									TextColor(tmpCol);

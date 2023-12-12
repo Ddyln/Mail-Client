@@ -1,6 +1,7 @@
 #pragma once
 #include <fstream>
 #include <vector>
+#include "Control.h"
 using namespace std;
 
 const string f = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -30,6 +31,8 @@ struct Base64 {
 	}
 
 	static void decode(string in, string dest) {
+		GotoXY(0, 0);
+		cerr << dest;
 		ofstream out(dest, ios::binary);
 		vector<int> T(256, -1);
 		for (int i = 0; i < 64; i++) T[f[i]] = i;

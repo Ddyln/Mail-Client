@@ -12,4 +12,7 @@ void FontSize(int x);
 void MailContent(MAIL mail, int page = 0);
 void DrawBox(int w, int h, int x, int y, int color, int Time);
 void ClearBox(int w, int h, int x, int y);
+void ClearBorder(int w, int h, int x, int y);
+void DrawBorder(int w, int h, int x, int y, int col);
 void PrintTextInLine(string text, int w, int x, int y, int color = BLACK);
+bool EnterTextInTable(int len, vector <string>& table, int row);

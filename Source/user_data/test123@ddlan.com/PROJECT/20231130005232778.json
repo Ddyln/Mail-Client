@@ -9,7 +9,7 @@
         "hi",
         "bye"
     ],
-    "read": false,
+    "read": true,
     "subject": "test SMTP",
     "text": "hello\nhi\nbye",
     "to": "test123@ddlan.com",

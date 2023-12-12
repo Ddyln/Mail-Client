@@ -331,8 +331,8 @@ int Init(LIST& mail, CONFIG& cnf) {
     return 0;
 }
 
-bool EnterPath(string& s, int len) {
-    char c;
+bool EnterText(string& s, int len) {
+    unsigned char c;
     HideCursor(0);
     while (true) {
         c = _getch();
@@ -340,22 +340,41 @@ bool EnterPath(string& s, int len) {
             break;
         }
         else if (c == ESC) {
+            int n = min(s.size(), len);
+            GotoXY(WhereX() - n, WhereY());
+            for (int i = 0; i < n; i++)
+                cout << ' ';
             s = "";
             HideCursor(1);
             return 0;
         }
         else if (c == BACK_SPACE) {
             if (s.size()) {
-                int x = WhereX(), y = WhereY();
-                GotoXY(x - 1, y);
-                cout << ' ';
-                GotoXY(x - 1, y);
                 s.pop_back();
+                if (s.size() + 1 < len) {
+                    GotoXY(WhereX() - 1, WhereY());
+                    cout << ' ';
+                    GotoXY(WhereX() - 1, WhereY());
+                }
+                else {
+                    GotoXY(WhereX() - len + 1, WhereY());
+                    int n = s.size();
+                    cout << s.substr(n - len + 1);
+                }
             }
         }
-        else if (s.size() < len && c < 128) {
-            cout << c;
+        else if (c == 224) {
+            c = _getch();
+        }
+        else if (c != TAB) {
             s += c;
+            if (s.size() < len)
+                cout << c;
+            else {
+                GotoXY(WhereX() - len + 1, WhereY());
+                int n = s.size();
+                cout << s.substr(n - len + 1);
+            }
         }
     }
     HideCursor(1);

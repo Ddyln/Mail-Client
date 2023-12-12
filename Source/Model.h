@@ -10,5 +10,5 @@ MAIL MsgParser(char s[]);
 MAIL RetrMail(SOCKET sock, int i);
 void CreateUser(string user);
 int FileSize(string path);
-bool EnterPath(string& s, int len);
+bool EnterText(string& s, int len);
 void FilterMail(MAIL& mailm, CONFIG& cnf);

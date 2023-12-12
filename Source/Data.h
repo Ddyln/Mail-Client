@@ -90,6 +90,7 @@ using namespace std;
 #define UP_ARROW 72
 #define RIGHT_ARROW 77
 #define DOWN_ARROW 80
+#define TAB 9
 
 const string MIME_start = "This is a multi-part message in MIME format.";
 enum FILTER{

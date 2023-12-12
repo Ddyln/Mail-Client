@@ -1,18 +1,17 @@
 {
-    "ID": "20231130114319878",
+    "ID": "20231212114820588",
     "att": [],
     "boundary": "",
-    "cc": "",
+    "cc": "test456@ddlan.com",
     "from": "test123@ddlan.com",
     "line": [
-        "test",
-        "123",
+        "testing ",
         "ok",
-        "bye"
+        ""
     ],
     "read": true,
-    "subject": "mail 3",
-    "text": "test\n123\nok\nbye",
+    "subject": "multiline mail 3",
+    "text": "testing \nok\n",
     "to": "test123@ddlan.com",
     "type": 1
 }
