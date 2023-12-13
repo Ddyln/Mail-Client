@@ -19,7 +19,6 @@ int main() {
 		tmp["SMTP"],
 		tmp["POP3"],
 		tmp["autoload"],
-		tmp["filteredBySender"],
 		tmp["important"],
 		tmp["work"],
 		tmp["project"],

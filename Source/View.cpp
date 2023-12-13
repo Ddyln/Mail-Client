@@ -498,6 +498,8 @@ void EnterMail(CONFIG& cnf) {
 						}
 						totalFileSize += fsz;
 						att.push_back(file);
+						GotoXY(53, 27);
+						cout << att.size();
 					}
 				}
 				x = WhereX(), y = WhereY();

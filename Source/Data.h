@@ -104,7 +104,7 @@ enum FILTER{
 struct CONFIG {
 	string username = "", mail = "", password = "", server = "";
 	int SMTP = 0, POP3 = 0, autoload = 0;
-	vector <string> filteredBySender, important, work, project, spam;
+	vector <string> important, work, project, spam;
 };
 
 struct MAIL {
