@@ -16,3 +16,5 @@ void ClearBorder(int w, int h, int x, int y);
 void DrawBorder(int w, int h, int x, int y, int col);
 void PrintTextInLine(string text, int w, int x, int y, int color = BLACK);
 bool EnterTextInTable(int len, vector <string>& table, int row);
+void EnterMail(CONFIG& cnf);
+string FileName(string& s);

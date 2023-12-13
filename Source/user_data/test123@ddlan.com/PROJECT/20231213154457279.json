@@ -1,0 +1,15 @@
+{
+    "ID": "20231213154457279",
+    "att": [],
+    "boundary": "",
+    "cc": "",
+    "from": "THMMT_N08@fit.hcmus.edu.vn",
+    "line": [
+        "Bye"
+    ],
+    "read": false,
+    "subject": "Hello",
+    "text": "Bye",
+    "to": "test123@ddlan.com,",
+    "type": 1
+}

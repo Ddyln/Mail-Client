@@ -1,0 +1,16 @@
+{
+    "ID": "20231212114539052",
+    "att": [],
+    "boundary": "",
+    "cc": "test456@lan.com, test789@ddlan.com",
+    "from": "Dang Duy Lan <test123@ddlan.com>",
+    "line": [
+        "ok",
+        ""
+    ],
+    "read": true,
+    "subject": "test cc and bcc",
+    "text": "ok\n",
+    "to": "test123@ddlan.com",
+    "type": 1
+}

@@ -2,7 +2,7 @@
 #include "View.h"
 #include "Control.h"
 #include "Model.h"
-char recvbuf[buflen] = { 0 };
+static char recvbuf[buflen] = { 0 };
 
 int Recv(SOCKET& sock, char recvbuf[]) {
     memset(recvbuf, 0, sizeof recvbuf);
@@ -76,12 +76,13 @@ MAIL MsgParser(char s[]) {
     while (true) {
         memset(s, 0, buflen);
         inp.getline(s, buflen, 13);
-        if (strlen(s) == 2 && s[1] == '.')
+        int n = strlen(s);
+        if (n == 2 && s[1] == '.' || n == 0)
             break;
-        for (int i = 0; i < strlen(s); i++)
+        for (int i = 0; i < n; i++)
             res.text += s[i];
     }
-
+    
     res.text.erase(0, 1);
     res.line.push_back("");
     for (int i = 0; i < res.text.size(); i++) {
@@ -92,27 +93,25 @@ MAIL MsgParser(char s[]) {
         }
         res.line.back().push_back(res.text[i]);
     }
+    vector <string> tmp;
     if (res.line.size() > 1 && res.line[0] == MIME_start) {
-        int i = 0;
-        for (int t = 0; t < 5; t++)
-            res.line.erase(res.line.begin() + i);
-        while (i < res.line.size() && res.line[i] != res.boundary) i++;
-        i--;
-        for (int t = 0; t < 2; t++)
-            res.line.erase(res.line.begin() + i);
-
+        int i = 5;
+        while (i < res.line.size() && res.line[i] != res.boundary) tmp.push_back(res.line[i++]);
+        tmp.pop_back();
+        i++;
         while (res.line.size()) {
             res.att.push_back("");
-            while (i < res.line.size() && res.line[i] != res.boundary) {
-                for (int j = 0; j < res.line[i].size(); j++)
-                    res.att.back() += res.line[i][j];
-                res.line.erase(res.line.begin() + i);
+            while (i < res.line.size() && res.line[i] != res.boundary && res.line[i] != res.boundary + "--") {
+                res.att.back() += res.line[i];
+                //res.line.erase(res.line.begin() + i);
+                i++;
             }
-            while (i < res.line.size() && res.line[i] != res.boundary) i++;
-            if (i >= res.line.size())
+            if (i >= res.line.size() || res.line[i] == res.boundary + "--")
                 break;
-            res.line.erase(res.line.begin() + i);
+            i++;
+            //res.line.erase(res.line.begin() + i);
         }
+        res.line = tmp;
     }
     return res;
 }
@@ -129,7 +128,7 @@ void CreateUser(string user) {
         f.close();
     }
 }
-
+char tmp[buflen] = { 0 };
 MAIL RetrMail(SOCKET sock, int i) {
     string command = "RETR ";
     command += to_string(i);
@@ -137,7 +136,25 @@ MAIL RetrMail(SOCKET sock, int i) {
     memset(recvbuf, 0, sizeof recvbuf);
     Send(sock, command);
     Recv(sock, recvbuf);
-    return MsgParser(recvbuf);
+    int sz = 0, pos = 0;
+    pos = Find(recvbuf, ' ') + 1;
+    while (isdigit(recvbuf[pos])) {
+        sz = sz * 10 + (int)recvbuf[pos++] - '0';
+    }
+    int n = strlen(recvbuf);
+    for (i = 0; i < n; i++)
+        tmp[i] = recvbuf[i];
+    sz -= n;
+    while (sz > 0) {
+        memset(recvbuf, 0, sizeof recvbuf);
+        Recv(sock, recvbuf);
+        n = strlen(recvbuf);
+        sz -= n;
+        for (int j = 0; j < n; j++, i++) {
+            tmp[i] = recvbuf[j];
+        }
+    }
+    return MsgParser(tmp);
 }
 
 int FileSize(string path) {
@@ -234,7 +251,6 @@ int Init(LIST& mail, CONFIG& cnf) {
         pos = tmp;
     }
     CreateUser(cnf.mail);
- 
     fstream f{ "user_data/" + cnf.mail + "/mail_id.json" };
     auto data = nlohmann::json::parse(f);
     f.close();
@@ -243,6 +259,7 @@ int Init(LIST& mail, CONFIG& cnf) {
         auto it = data.find(ID);
         if (it == data.end()) {
             mail[i] = (RetrMail(sock, i + 1));
+            //exit(0);
             mail[i].ID = ID;
             FilterMail(mail[i], cnf);
             string path = "user_data/" + cnf.mail + "/";

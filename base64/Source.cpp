@@ -14,9 +14,9 @@ int FileSize(string path) {
 }
 
 int main() {
-    string ext = ".docx";
+    string ext = ".pdf";
 	string tmp = Base64::encode("test" + ext);
-    cerr << tmp << endl;
+    cerr << tmp.size() << endl;
     Base64::decode(tmp, "decoded" + ext);
 
 	return 0;

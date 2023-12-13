@@ -1,7 +1,8 @@
-#include "Data.h"
+﻿#include "Data.h"
 #include "View.h"
 #include "Control.h"
 #include "Model.h"
+static char recvbuf[buflen] = { 0 };
 
 void FixConsoleWindow() {
 	HWND consoleWindow = GetConsoleWindow();
@@ -398,8 +399,7 @@ bool EnterTextInTable(int len, vector <string>& table, int row) {
 	return 1;
 }
 
-
-void EnterMail() {
+void EnterMail(CONFIG& cnf) {
 	GotoXY(27, 1);
 	cout << "  To   " << V_LINE << " ";
 	GotoXY(27, 3);
@@ -468,17 +468,18 @@ void EnterMail() {
 					EnterTextInTable(len[pos], table, 15);
 				else if (pos == 5) {
 					while (true) {
-						buttonText[pos] = "";
+						string& file = buttonText[pos];
+						file = "";
 						GotoXY(31, 29);
 						for (int i = 31; i < 95; i++)
 							cout << ' ';
 						GotoXY(31, 29);
-						EnterText(buttonText[pos], len[pos]);
+						if (!EnterText(file, len[pos])) break;
 						GotoXY(31, 29);
 						for (int i = 31; i < 95; i++)
 							cout << ' ';
 						GotoXY(31, 29);
-						int fsz = FileSize(buttonText[pos]);
+						int fsz = FileSize(file);
 						if (fsz < 0) {
 							int tmp = GetCurrentColor();
 							TextColor(RED);
@@ -490,13 +491,13 @@ void EnterMail() {
 						if (fsz + totalFileSize > 3000000) {
 							int tmp = GetCurrentColor();
 							TextColor(RED);
-							cout << "Total files size cannot exceed 3MB";
+							cout << "Total files' size cannot exceed 3MB";
 							TextColor(tmp);
 							_getch();
 							continue;
 						}
 						totalFileSize += fsz;
-						//att.push_back(Base64::encode(buttonText[pos]));
+						att.push_back(file);
 					}
 				}
 				x = WhereX(), y = WhereY();
@@ -527,10 +528,150 @@ void EnterMail() {
 				if (pos == 1) 
 					return;
 				int pos = 0;
-				
+				WSADATA wsaData;
+				if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+					cerr << "Failed to initialize Winsock\n";
+					return ;
+				}
+
+				SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+				if (sock == INVALID_SOCKET) {
+					cerr << "Failed to create socket\n";
+					WSACleanup();
+					return;
+				}
+
+				sockaddr_in server;
+				server.sin_addr.s_addr = inet_addr(cnf.server.c_str());
+				server.sin_family = AF_INET;
+				server.sin_port = htons(cnf.SMTP);
+				connect(sock, (sockaddr*)&server, sizeof(server));
+				Recv(sock, recvbuf);
+				string command = "EHLO [" + cnf.server + "]\n";
+				Send(sock, command);
+				Recv(sock, recvbuf);
+				command = "MAIL FROM:<" + cnf.mail + ">\n";
+				Send(sock, command);
+				Recv(sock, recvbuf);
+				for (int i = 0; i < 3; i++) {
+					int pos = 0;
+					string& s = buttonText[i];
+					if (s.empty()) continue;
+					if (s.back() != ',') s.push_back(',');
+					while (true) {
+						int oldPos = pos;
+						pos = Find(s, ',', pos);
+						string receiver = (s.substr(oldPos, pos - oldPos));
+						command = "RCPT TO:<" + receiver + ">\n";
+						Send(sock, command);
+						Recv(sock, recvbuf);
+						pos++;
+						pos = FindNot(s, ' ', pos);
+						if (pos < 0) break;
+					}
+				}
+				command = "DATA\n";
+				Send(sock, command);
+				Recv(sock, recvbuf);
+				command = "From: " + cnf.mail + "\n";
+				Send(sock, command);
+				command = "To: " + buttonText[0] + "\n";
+				Send(sock, command);
+				if (buttonText[1].size()) {
+					command = "Cc: " + buttonText[1] + "\n";
+					Send(sock, command);
+				}
+				if (buttonText[3].size()) {
+					command = "Subject: " + buttonText[3] + "\n";
+					Send(sock, command);
+				}
+				if (att.size()) {
+					command = "MIME-Version: 1.0\n";
+					Send(sock, command);
+					command = "Content-Type: multipart/mixed; boundary=\"------------OKIXMxsox0yQHMH3fEfrxS50\"\n";
+					Send(sock, command);
+					command = "\n";
+					Send(sock, command);
+					command = MIME_start + "\n";
+					Send(sock, command);
+					command = "------------OKIXMxsox0yQHMH3fEfrxS50\n";
+					Send(sock, command);
+					command = "Content-Type: text/plain; charset=UTF-8; format=flowed\n";
+					Send(sock, command);
+					command = "Content-Transfer-Encoding: 7bit\n";
+					Send(sock, command);
+					command = "\n";
+					Send(sock, command);
+					command = "";
+					for (string& s : table) {
+						if (s.size() < len[4]) {
+							command += s + "\n";
+							Send(sock, command);
+							command = "";
+						}
+						else
+							command += s;
+					}
+					if (command.size())
+						Send(sock, command += "\n");
+					command = "\n";
+					Send(sock, command);
+					for (int i = 0; i < att.size(); i++) {
+						command = "--------------OKIXMxsox0yQHMH3fEfrxS50\n";
+						Send(sock, command);
+						command = "Content-Disposition: attachment; filename=\"" + FileName(att[i]) + "\"\n";
+						Send(sock, command);
+						command = "Content-Transfer-Encoding: base64\n";
+						Send(sock, command);
+						command = "\n";
+						Send(sock, command);
+						GotoXY(0, 0);
+						command = Base64::encode(att[i]);
+						for (int i = 0; i < command.size(); i += 50) {
+							string tmp = command.substr(i, min(50, (int)command.size() - i)) + "\n";
+							Send(sock, tmp);
+						}
+					}
+					command = "\n";
+					Send(sock, command);
+					command = "--------------OKIXMxsox0yQHMH3fEfrxS50--\n";
+					Send(sock, command);
+					command = ".\n";
+					Send(sock, command);
+				}
+				else {
+					command = "\n";
+					Send(sock, command);
+					command = "";
+					for (string& s : table) {
+						if (s.size() < len[4]) {
+							command += s + "\n";
+							Send(sock, command);
+							command = "";
+						}
+						else
+							command += s;
+					}
+					command = ".\n";
+					Send(sock, command);
+				}
+				Recv(sock, recvbuf);
+				command = "QUIT\n";
+				Send(sock, command);
+				Recv(sock, recvbuf);
+				closesocket(sock);
+				WSACleanup();
+				return;
 			}
 		}
 	}
+}
+
+string FileName(string& s) {
+	int i = s.size();
+	i--;
+	while (s[i] != '/' && s[i] != '\\') i--;
+	return s.substr(i + 1);
 }
 
 void MainMenu(LIST& mail, CONFIG& cnf) {
@@ -600,7 +741,7 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 		else if (c == ENTER) {
 			if (pos == 5) {
 				ClearBox(WIDTH - 21, HEIGHT, 21, 0);
-				EnterMail();
+				EnterMail(cnf);
 				ClearBox(WIDTH - 21, HEIGHT, 21, 0);
 
 				for (int i = 0; i < HEIGHT; i++) {
@@ -623,9 +764,9 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 				
 				while (true) {
 					if (mail.size() > curMailSize) {
-						GotoXY(0, 0);
 						while (wait);
-						for (int i = curMailSize; i < mail.size(); i++) {
+						filteredIndex.clear();
+						for (int i = 0; i < mail.size(); i++) {
 							if (mail[i].type == pos)
 								filteredIndex.push_back(i);
 						}
@@ -701,8 +842,7 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 											while (x.att[i][pos] != '\"') pos--;
 											pos++;
 											fileName = x.att[i].substr(pos, tmpPos - pos + 1);
-											path += "\\" + fileName;
-											Base64::decode(encodedData, path);
+											Base64::decode(encodedData, path + "\\" + fileName);
 										}
 									}
 									TextColor(tmpCol);
