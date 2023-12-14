@@ -1,7 +1,7 @@
-﻿#include "Data.h"
-#include "View.h"
-#include "Control.h"
-#include "Model.h"
+﻿#include "lib/Data.h"
+#include "lib/View.h"
+#include "lib/Control.h"
+#include "lib/Model.h"
 static char recvbuf[buflen] = { 0 };
 
 int Recv(SOCKET& sock, char recvbuf[]) {
@@ -397,3 +397,5 @@ bool EnterText(string& s, int len) {
     HideCursor(1);
     return 1;
 }
+
+void DoAbsoluteNothing() {}

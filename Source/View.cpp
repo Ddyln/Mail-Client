@@ -1,7 +1,8 @@
-﻿#include "Data.h"
-#include "View.h"
-#include "Control.h"
-#include "Model.h"
+﻿#include "lib/Data.h"
+#include "lib/View.h"
+#include "lib/Control.h"
+#include "lib/Model.h"
+
 static char recvbuf[buflen] = { 0 };
 
 void FixConsoleWindow() {
@@ -481,19 +482,11 @@ void EnterMail(CONFIG& cnf) {
 						GotoXY(31, 29);
 						int fsz = FileSize(file);
 						if (fsz < 0) {
-							int tmp = GetCurrentColor();
-							TextColor(RED);
-							cout << "File not Found!";
-							TextColor(tmp);
-							_getch();
+							DisplayFileNotFound();
 							continue;
 						}
 						if (fsz + totalFileSize > 3000000) {
-							int tmp = GetCurrentColor();
-							TextColor(RED);
-							cout << "Total files' size cannot exceed 3MB";
-							TextColor(tmp);
-							_getch();
+							DisplayFileSizeOverflow();
 							continue;
 						}
 						totalFileSize += fsz;
@@ -766,7 +759,7 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 				
 				while (true) {
 					if (mail.size() > curMailSize) {
-						while (wait);
+						while (wait) DoAbsoluteNothing();
 						filteredIndex.clear();
 						for (int i = 0; i < mail.size(); i++) {
 							if (mail[i].type == pos)
@@ -891,4 +884,22 @@ void MainMenu(LIST& mail, CONFIG& cnf) {
 		}
 	}
 	mailThread.join();
+}
+
+void DisplayFileNotFound() {
+	int msgboxID = MessageBox(
+		NULL,
+		(LPCWSTR)L"Cannot find the designated file.\n Please try again!",
+		(LPCWSTR)L"File not Found",
+		MB_ICONWARNING
+	);
+}
+
+void DisplayFileSizeOverflow() {
+	int msgboxID = MessageBox(
+		NULL,
+		(LPCWSTR)L"Total files' size have exceeded 3MB.",
+		(LPCWSTR)L"Size too large",
+		MB_ICONERROR
+	);
 }

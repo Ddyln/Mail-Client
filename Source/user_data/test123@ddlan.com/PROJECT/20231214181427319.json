@@ -1,0 +1,15 @@
+{
+    "ID": "20231214181427319",
+    "att": [],
+    "boundary": "",
+    "cc": "",
+    "from": "test123@ddlan.com",
+    "line": [
+        "test again."
+    ],
+    "read": false,
+    "subject": "testing",
+    "text": "test again.",
+    "to": "test123@ddlan.com,",
+    "type": 1
+}

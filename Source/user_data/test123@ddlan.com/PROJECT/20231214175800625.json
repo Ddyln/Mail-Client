@@ -1,0 +1,16 @@
+{
+    "ID": "20231214175800625",
+    "att": [],
+    "boundary": "",
+    "cc": "",
+    "from": "test123@ddlan.com",
+    "line": [
+        "hi",
+        ""
+    ],
+    "read": true,
+    "subject": "hello",
+    "text": "hi\n",
+    "to": "test123@ddlan.com,",
+    "type": 1
+}

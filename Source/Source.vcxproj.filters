@@ -29,19 +29,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Data.h">
+    <ClInclude Include="lib\Data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="View.h">
+    <ClInclude Include="lib\base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Control.h">
+    <ClInclude Include="lib\Control.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="lib\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base64.h">
+    <ClInclude Include="lib\View.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
